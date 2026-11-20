@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>MiniCondutores – Regras da Estrada Kids</title>
+<style>
+:root{
+  --navy:#17324d; --teal:#0f8a8a; --teal-l:#e6f4f4; --sky:#dff1ff; --sun:#ffc93c; --coral:#ff6b5b;
+  --green:#2fb67c; --ink:#17324d; --muted:#5d7287; --card:#fff; --bg:#f2f8fb;
+  --red:#d8232a; --blue:#1d5fb4;
+  --radius:22px;
+  font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);min-height:100%}
+body{overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+#app{max-width:760px;margin:0 auto;min-height:100vh;padding:14px 14px 96px;position:relative}
+h1,h2,h3{margin:.2em 0;line-height:1.15}
+h1{font-size:30px;font-weight:900}
+h2{font-size:24px;font-weight:900}
+h3{font-size:18px;font-weight:800}
+p{line-height:1.45}
+.muted{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center}
+.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.center{text-align:center}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 4px 0 rgba(23,50,77,.08),0 8px 24px rgba(23,50,77,.06)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:18px;font-weight:800;font-size:18px;background:var(--teal);color:#fff;box-shadow:0 5px 0 #0a6464;transition:transform .08s, box-shadow .08s;user-select:none}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #0a6464}
+.btn.big{font-size:22px;padding:18px 26px;border-radius:22px}
+.btn.sun{background:var(--sun);color:var(--navy);box-shadow:0 5px 0 #d29b13}
+.btn.coral{background:var(--coral);box-shadow:0 5px 0 #c94436}
+.btn.navy{background:var(--navy);box-shadow:0 5px 0 #0a1c2c}
+.btn.ghost{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c8d6e0}
+.btn.small{font-size:15px;padding:9px 14px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.iconbtn{width:46px;height:46px;border-radius:14px;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 0 #c8d6e0}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:7px 12px;font-weight:800;box-shadow:0 3px 0 #c8d6e0;font-size:16px}
+.avatar{width:54px;height:54px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12)}
+.avatar.lg{width:96px;height:96px;font-size:58px}
+.brand{font-weight:900;font-size:28px;letter-spacing:-.5px}
+.brand span{color:var(--teal)}
+.hero{background:linear-gradient(180deg,#bfe6ff 0%,#dff4ff 60%,#c9ecc9 60%,#b4e3b4 100%);border-radius:28px;padding:18px;position:relative;overflow:hidden;min-height:170px}
+.hero .road{position:absolute;left:0;right:0;bottom:22px;height:40px;background:#55606b}
+.hero .road:after{content:"";position:absolute;left:0;right:0;top:18px;height:4px;background:repeating-linear-gradient(90deg,#fff 0 26px,transparent 26px 50px);animation:dash 1.2s linear infinite}
+@keyframes dash{to{background-position:-50px 0}}
+.hero .drive{position:absolute;bottom:34px;font-size:40px;animation:drive 9s linear infinite}
+@keyframes drive{from{left:-60px}to{left:110%}}
+.hero .cloud{position:absolute;font-size:34px;opacity:.9;animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:480px){.g4{grid-template-columns:repeat(3,1fr)}}
+.profile-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:22px;background:#fff;box-shadow:0 5px 0 #c8d6e0;font-weight:800;font-size:18px}
+.profile-tile:active{transform:translateY(3px);box-shadow:0 2px 0 #c8d6e0}
+.choice{border-radius:16px;background:#fff;box-shadow:0 4px 0 #c8d6e0;padding:10px;font-size:30px;display:flex;align-items:center;justify-content:center;min-height:58px;border:3px solid transparent}
+.choice.sel{border-color:var(--teal);background:var(--teal-l)}
+input[type=text]{width:100%;font:inherit;font-size:22px;font-weight:800;padding:14px 16px;border-radius:16px;border:3px solid #cfe0ea;outline:none;color:var(--navy)}
+input[type=text]:focus{border-color:var(--teal)}
+.level{display:flex;align-items:center;gap:14px;padding:14px;border-radius:24px;background:#fff;box-shadow:0 5px 0 #c8d6e0;text-align:left;width:100%;position:relative}
+.level .bubble{width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;flex:none;box-shadow:inset 0 -5px 0 rgba(0,0,0,.15)}
+.level.locked{opacity:.55;filter:grayscale(.7)}
+.level .lock{position:absolute;right:14px;top:12px;font-size:22px}
+.stars{color:#f5b301;font-size:18px;letter-spacing:1px}
+.stars .off{color:#d5dde3}
+.progress{height:12px;background:#e3edf2;border-radius:99px;overflow:hidden}
+.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#7ed957);border-radius:99px}
+.path{display:flex;flex-direction:column;gap:14px;position:relative}
+.game-tile{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;background:#fff;box-shadow:0 5px 0 #c8d6e0;text-align:left;width:100%}
+.game-tile .ic{font-size:34px;width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:var(--teal-l);flex:none}
+.nav{position:fixed;left:0;right:0;bottom:0;background:#fff;box-shadow:0 -4px 20px rgba(23,50,77,.1);display:flex;justify-content:center;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.nav .in{display:flex;max-width:760px;width:100%}
+.nav button{flex:1;padding:8px 2px 10px;display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:800;color:var(--muted)}
+.nav button b{font-size:26px;line-height:1.2}
+.nav button.on{color:var(--teal)}
+.qcard{background:#fff;border-radius:26px;padding:18px;box-shadow:0 5px 0 #c8d6e0}
+.qtext{font-size:22px;font-weight:900;line-height:1.3}
+.opts{display:grid;gap:12px;margin-top:14px}
+.opt{background:#fff;border-radius:20px;padding:14px 16px;font-size:19px;font-weight:800;box-shadow:0 5px 0 #c8d6e0;border:3px solid #e3edf2;text-align:left;display:flex;align-items:center;gap:12px;min-height:64px}
+.opt.vis{justify-content:center;text-align:center;flex-direction:column}
+.opt:active{transform:translateY(3px)}
+.opt.ok{border-color:var(--green);background:#e5f8ee;box-shadow:0 5px 0 #8fd3b0}
+.opt.no{border-color:var(--coral);background:#ffeceA;box-shadow:0 5px 0 #f3b2aa}
+.opt.dim{opacity:.5}
+.feedback{margin-top:14px;border-radius:20px;padding:14px 16px;font-size:18px;font-weight:700;line-height:1.4}
+.feedback.ok{background:#e5f8ee;color:#16683f}
+.feedback.no{background:#fff3d6;color:#7a5200}
+.scene-emoji{font-size:56px;text-align:center;letter-spacing:6px;margin:6px 0 10px}
+.dot{display:inline-block;width:54px;height:54px;border-radius:50%;box-shadow:inset 0 -5px 0 rgba(0,0,0,.2)}
+.hud{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hud .progress{flex:1}
+.signbox{display:flex;justify-content:center;margin:6px 0 4px}
+.signbox svg{filter:drop-shadow(0 4px 4px rgba(0,0,0,.18))}
+/* road scene */
+.roadscene{position:relative;height:230px;border-radius:24px;overflow:hidden;background:#8fd18f;margin-bottom:12px}
+.roadscene .asphalt{position:absolute;left:28%;right:28%;top:0;bottom:0;background:#56616c}
+.roadscene .lane{position:absolute;left:50%;top:-60px;bottom:0;width:8px;margin-left:-4px;background:repeating-linear-gradient(180deg,#fff 0 30px,transparent 30px 60px);animation:lane .8s linear infinite}
+.roadscene.stop .lane,.roadscene.stop .tree{animation-play-state:paused}
+@keyframes lane{to{transform:translateY(60px)}}
+.roadscene .veh{position:absolute;left:50%;bottom:14px;transform:translateX(-10%);font-size:54px;transition:bottom 1.2s ease-in}
+.roadscene .veh.go{bottom:260px}
+.roadscene .rsign{position:absolute;right:4%;top:10px;animation:approach 1.6s ease-out forwards;transform-origin:center bottom}
+.roadscene .rsign .pole{width:6px;height:40px;background:#888;margin:0 auto}
+@keyframes approach{from{transform:scale(.25) translateY(-80px);opacity:.2}to{transform:scale(1) translateY(0);opacity:1}}
+.roadscene .tree{position:absolute;left:6%;font-size:34px;animation:trees 2.4s linear infinite}
+@keyframes trees{from{top:-50px}to{top:240px}}
+/* crossing */
+.cross{position:relative;height:330px;border-radius:24px;overflow:hidden;background:#cfd8dc;user-select:none}
+.cross .walk{position:absolute;left:0;right:0;height:70px;background:#d9cbb5;background-image:linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:30px 30px}
+.cross .walk.t{top:0}.cross .walk.b{bottom:0}
+.cross .street{position:absolute;left:0;right:0;top:70px;bottom:70px;background:#4f5a64}
+.cross .zebra{position:absolute;left:38%;width:24%;top:0;bottom:0;background:repeating-linear-gradient(180deg,#fff 0 16px,transparent 16px 32px);opacity:.95}
+.cross .kid{position:absolute;left:50%;bottom:12px;font-size:46px;transform:translateX(-50%);transition:bottom 1.6s ease-in-out}
+.cross .kid.up{bottom:268px}
+.cross .kid.look{animation:look 1s ease-in-out}
+@keyframes look{0%,100%{transform:translateX(-50%) scaleX(1)}25%{transform:translateX(-50%) scaleX(-1)}50%{transform:translateX(-50%) scaleX(1)}75%{transform:translateX(-50%) scaleX(-1)}}
+.cross .car{position:absolute;font-size:50px;top:108px;left:110%;animation:carx 1.7s linear forwards}
+.cross .car.b{top:150px}
+@keyframes carx{to{left:-25%}}
+.cross .light{position:absolute;right:10px;top:8px;z-index:3;background:#1d2329;border-radius:14px;padding:6px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.cross .light span{width:42px;height:42px;font-size:22px;border-radius:10px;background:#333b42;display:flex;align-items:center;justify-content:center}
+.cross .light span.r.on{background:#ff3b30;box-shadow:0 0 18px #ff3b30}
+.cross .light span.g.on{background:#2fe06b;box-shadow:0 0 18px #2fe06b}
+.cross .light span.g.blink{animation:blink .4s steps(2) infinite}
+@keyframes blink{50%{background:#333b42;box-shadow:none}}
+/* memory */
+.mem{display:grid;gap:10px}
+.mcard{aspect-ratio:3/4;perspective:600px}
+.mcard .in{position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
+.mcard.open .in,.mcard.done .in{transform:rotateY(180deg)}
+.mcard .f,.mcard .b{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font-weight:800;font-size:14px;line-height:1.15}
+.mcard .f{background:linear-gradient(135deg,var(--teal),#13a7a7);color:#fff;font-size:32px;box-shadow:0 4px 0 #0a6464}
+.mcard .b{background:#fff;transform:rotateY(180deg);box-shadow:0 4px 0 #c8d6e0;border:3px solid #e3edf2}
+.mcard.done .b{border-color:var(--green);background:#eefaf3}
+/* build */
+.steps{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.steps i{width:30px;height:8px;border-radius:9px;background:#d5e2ea}
+.steps i.on{background:var(--teal)}
+.timer{height:14px;border-radius:9px;background:#e3edf2;overflow:hidden}
+.timer i{display:block;height:100%;background:linear-gradient(90deg,var(--coral),var(--sun));transform-origin:left;}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(23,50,77,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px;animation:fade .2s}
+.modal .box{background:#fff;border-radius:28px;padding:22px;max-width:460px;width:100%;max-height:90vh;overflow:auto;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.bigstars{font-size:54px;letter-spacing:4px}
+.bigstars span{display:inline-block;color:#d5dde3}
+.bigstars span.on{color:#f5b301;animation:starpop .5s cubic-bezier(.2,1.8,.4,1) both}
+@keyframes starpop{from{transform:scale(0) rotate(-90deg)}}
+.sticker{aspect-ratio:1;border-radius:20px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:40px;box-shadow:0 4px 0 #c8d6e0;position:relative}
+.sticker small{font-size:11px;font-weight:800;color:var(--muted);margin-top:2px;text-align:center;padding:0 4px}
+.sticker.locked{background:#e8eff3;box-shadow:none;border:3px dashed #c3d3dc}
+.sticker.locked span{filter:grayscale(1) brightness(0);opacity:.12}
+.sticker.new{animation:wiggle .8s ease-in-out 2}
+@keyframes wiggle{25%{transform:rotate(-8deg) scale(1.08)}75%{transform:rotate(8deg) scale(1.08)}}
+.reveal{font-size:110px;animation:reveal 1s cubic-bezier(.2,1.6,.4,1)}
+@keyframes reveal{from{transform:scale(0) rotate(-200deg)}}
+.diploma{border:8px double var(--teal);border-radius:20px;padding:18px;background:linear-gradient(180deg,#fffef6,#fff6dc);text-align:center}
+.diploma .seal{font-size:60px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;padding:9px 14px;border-radius:999px;background:#fff;font-weight:800;box-shadow:0 3px 0 #c8d6e0;font-size:15px}
+.tab.on{background:var(--navy);color:#fff;box-shadow:0 3px 0 #0a1c2c}
+.libitem{background:#fff;border-radius:20px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 0 #c8d6e0;font-weight:800;font-size:13px;text-align:center;line-height:1.15}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:16px;font-weight:800;z-index:60;animation:pop .3s;max-width:90%;text-align:center}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+.confetti i{position:absolute;top:-20px;width:12px;height:16px;border-radius:3px;animation:fall 2.2s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.switch{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #e8eff3;font-weight:800;font-size:17px}
+.tog{width:58px;height:34px;border-radius:99px;background:#cfdce4;position:relative;transition:.2s;flex:none}
+.tog:after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.tog.on{background:var(--green)}
+.tog.on:after{left:28px}
+input[type=range]{width:100%;accent-color:var(--teal);height:30px}
+.shop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:#fff;border-radius:20px;box-shadow:0 4px 0 #c8d6e0;border:3px solid transparent}
+.shop.sel{border-color:var(--teal);background:var(--teal-l)}
+.shop .e{font-size:44px}
+.bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:700}
+.bar-row .progress{flex:1}
+.voicewarn{background:#fff3d6;color:#7a5200;border-radius:14px;padding:10px 12px;font-size:14px;font-weight:700;margin-top:8px}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.bounce{animation:bounce .6s}
+@keyframes bounce{40%{transform:scale(1.15)}}
+.sayb{width:44px;height:44px;border-radius:50%;background:var(--sun);display:inline-flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 0 #d29b13;flex:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<script>
+"use strict";
+/* =========================================================
+   MiniCondutores – jogo educativo de regras e sinais da estrada (PT)
+   ========================================================= */
+
+/* ---------- Utilitários ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const uid = () => Math.random().toString(36).slice(2,9);
+
+/* ---------- Armazenamento (perfis) ---------- */
+const Store = {
+  key: 'minicondutores_v1', mem: null,
+  load(){ try { const r = localStorage.getItem(this.key); if (r) return JSON.parse(r); } catch(e){} return this.mem; },
+  save(d){ this.mem = JSON.parse(JSON.stringify(d)); try { localStorage.setItem(this.key, JSON.stringify(d)); } catch(e){} }
+};
+const S = Store.load() || { profiles: [], current: null, settings: { sound:true, music:false, voice:true, volume:0.8 } };
+if (!S.settings) S.settings = { sound:true, music:false, voice:true, volume:0.8 };
+const save = () => Store.save(S);
+const P = () => S.profiles.find(p => p.id === S.current) || null;
+
+/* =========================================================
+   SOM – Web Audio (sintetizado, sem ficheiros externos)
+   ========================================================= */
+const SFX = (() => {
+  const noiseCache = new WeakMap();
+  function noiseBuf(c){
+    if (noiseCache.has(c)) return noiseCache.get(c);
+    const b = c.createBuffer(1, Math.floor(c.sampleRate*1.5), c.sampleRate);
+    const d = b.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+    noiseCache.set(c, b); return b;
+  }
+  function tone(c, out, t, o){
+    const osc = c.createOscillator(), g = c.createGain();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.f, t);
+    if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, t + (o.slide || o.dur));
+    const v = o.vol == null ? 0.3 : o.vol, a = o.attack || 0.01, d = o.dur || 0.2;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    osc.connect(g); g.connect(out);
+    if (o.vib){ const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = o.vib; lg.gain.value = o.vibAmt || 30; l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(t+d+0.05); }
+    osc.start(t); osc.stop(t + d + 0.05);
+    return osc;
+  }
+  function noise(c, out, t, o){
+    const s = c.createBufferSource(); s.buffer = noiseBuf(c);
+    const f = c.createBiquadFilter(); f.type = o.ftype || 'bandpass'; f.Q.value = o.q || 1;
+    f.frequency.setValueAtTime(o.f || 1000, t);
+    if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + o.dur);
+    const g = c.createGain(); const v = o.vol == null ? 0.3 : o.vol;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + (o.attack || 0.02));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
+    s.connect(f); f.connect(g); g.connect(out);
+    s.start(t); s.stop(t + o.dur + 0.05);
+  }
+  const N = { C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880, B5:987.77, C6:1046.5, E6:1318.5, G6:1568, C4:261.63, E4:329.63, G4:392, A4:440 };
+  return {
+    click:(c,o,t)=>{ tone(c,o,t,{type:'triangle',f:900,f2:600,dur:.07,vol:.18}); },
+    flip:(c,o,t)=>{ noise(c,o,t,{f:2500,f2:900,dur:.12,vol:.25,q:2}); tone(c,o,t,{type:'sine',f:500,f2:800,dur:.1,vol:.08}); },
+    correct:(c,o,t)=>{ [N.C5,N.E5,N.G5,N.C6].forEach((f,i)=>tone(c,o,t+i*.08,{type:'triangle',f,dur:.25,vol:.28})); tone(c,o,t+.32,{type:'sine',f:N.E6,dur:.4,vol:.12}); },
+    wrong:(c,o,t)=>{ tone(c,o,t,{type:'sine',f:420,f2:300,dur:.22,vol:.25}); tone(c,o,t+.2,{type:'sine',f:330,f2:240,dur:.3,vol:.22}); },
+    star:(c,o,t)=>{ tone(c,o,t,{type:'sine',f:N.E6,dur:.35,vol:.22}); tone(c,o,t+.06,{type:'sine',f:N.G6,dur:.4,vol:.18}); tone(c,o,t,{type:'triangle',f:N.C6,dur:.3,vol:.12}); },
+    coin:(c,o,t)=>{ tone(c,o,t,{type:'square',f:N.B5,dur:.08,vol:.12}); tone(c,o,t+.08,{type:'square',f:N.E6,dur:.35,vol:.12}); },
+    pop:(c,o,t)=>{ tone(c,o,t,{type:'sine',f:300,f2:1200,dur:.15,vol:.3,slide:.12}); noise(c,o,t,{f:3000,dur:.08,vol:.15}); [N.G5,N.C6,N.E6].forEach((f,i)=>tone(c,o,t+.15+i*.07,{type:'triangle',f,dur:.2,vol:.18})); },
+    win:(c,o,t)=>{ const m=[N.C5,N.E5,N.G5,N.C6,0,N.G5,N.C6]; const d=[.12,.12,.12,.25,.06,.12,.6];
+      let tt=t; m.forEach((f,i)=>{ if(f){ tone(c,o,tt,{type:'square',f,dur:d[i]+.05,vol:.1}); tone(c,o,tt,{type:'triangle',f:f/2,dur:d[i]+.05,vol:.15}); } tt+=d[i]; }); },
+    levelUp:(c,o,t)=>{ [N.C5,N.D5,N.E5,N.G5,N.A5,N.C6].forEach((f,i)=>tone(c,o,t+i*.07,{type:'triangle',f,dur:.2,vol:.22})); tone(c,o,t+.45,{type:'sine',f:N.C6,dur:.6,vol:.2,vib:6,vibAmt:12}); },
+    horn:(c,o,t)=>{ [370,466].forEach(f=>{ tone(c,o,t,{type:'square',f,dur:.22,vol:.08}); tone(c,o,t+.3,{type:'square',f,dur:.35,vol:.08}); }); },
+    bell:(c,o,t)=>{ [0,.18].forEach(d=>{ tone(c,o,t+d,{type:'sine',f:2100,dur:.5,vol:.18}); tone(c,o,t+d,{type:'sine',f:2950,dur:.35,vol:.08}); tone(c,o,t+d,{type:'sine',f:4200,dur:.2,vol:.04}); }); },
+    engine:(c,o,t)=>{ tone(c,o,t,{type:'sawtooth',f:55,f2:110,dur:1.1,vol:.12,attack:.08,vib:18,vibAmt:8}); noise(c,o,t,{f:200,f2:500,dur:1.1,vol:.12,ftype:'lowpass'}); },
+    carPass:(c,o,t)=>{ noise(c,o,t,{f:300,f2:1400,dur:.6,vol:.22,q:.8,attack:.4}); tone(c,o,t,{type:'sawtooth',f:90,f2:70,dur:.9,vol:.06,attack:.35}); },
+    whistle:(c,o,t)=>{ tone(c,o,t,{type:'sine',f:2700,dur:.45,vol:.18,vib:28,vibAmt:120}); },
+    pedBeep:(c,o,t)=>{ tone(c,o,t,{type:'square',f:1000,dur:.06,vol:.07}); },
+    tick:(c,o,t)=>{ tone(c,o,t,{type:'sine',f:1500,dur:.05,vol:.12}); },
+    siren:(c,o,t)=>{ for(let i=0;i<3;i++){ tone(c,o,t+i*.5,{type:'triangle',f:700,f2:1000,dur:.25,vol:.12,slide:.24}); tone(c,o,t+i*.5+.25,{type:'triangle',f:1000,f2:700,dur:.25,vol:.12,slide:.24}); } },
+    _tone: tone, _N: N
+  };
+})();
+
+const Sound = (() => {
+  let ctx = null, master = null, musicGain = null, musicTimer = null, mi = 0, nextT = 0;
+  function ensure(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx){
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = S.settings.volume * 1.7;
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2;
+      master.connect(comp); comp.connect(ctx.destination);
+      musicGain = ctx.createGain(); musicGain.gain.value = 0.16; musicGain.connect(master);
+    }
+    if (ctx.state === 'suspended' || ctx.state === 'interrupted') { ctx.resume().catch(()=>{}); }
+    return ctx;
+  }
+  function unlock(){
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+    const c = ensure(); if (!c) return;
+    try { const b = c.createBuffer(1, 1, 22050); const s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch(e){}
+    if (S.settings.music) startMusic();
+  }
+  function play(name){
+    if (!S.settings.sound) return;
+    const c = ensure(); if (!c || !SFX[name]) return;
+    try { SFX[name](c, master, c.currentTime + 0.02); } catch(e){ console.warn(e); }
+  }
+  function setVolume(v){ S.settings.volume = v; if (master) master.gain.setTargetAtTime(v * 1.7, ctx.currentTime, 0.05); }
+  const MEL = ['G5','E5','G5','A5','G5','E5','C5',0,'D5','E5','G5','E5','D5','C5','D5',0,'G5','E5','G5','A5','C6','A5','G5',0,'E5','D5','C5','D5','C5',0,0,0];
+  const BASS = ['C4','C4','A4','A4','E4','E4','G4','G4'];
+  function startMusic(){
+    const c = ensure(); if (!c || musicTimer) return;
+    nextT = c.currentTime + 0.1; mi = 0;
+    musicTimer = setInterval(() => {
+      while (nextT < c.currentTime + 0.35){
+        const n = MEL[mi % MEL.length];
+        if (n) SFX._tone(c, musicGain, nextT, {type:'triangle', f:SFX._N[n], dur:.24, vol:.5});
+        if (mi % 4 === 0) SFX._tone(c, musicGain, nextT, {type:'sine', f:SFX._N[BASS[(mi/4)%BASS.length]]/2, dur:.9, vol:.6});
+        nextT += 0.26; mi++;
+      }
+    }, 90);
+  }
+  function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
+  return { ensure, unlock, play, setVolume, startMusic, stopMusic, get ctx(){ return ctx; }, get master(){ return master; } };
+})();
+
+/* ---------- Voz (narração PT-PT) ---------- */
+const Voice = {
+  voice: null, langFound: null,
+  pick(){
+    if (!('speechSynthesis' in window)) return;
+    const vs = speechSynthesis.getVoices();
+    this.voice = vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+    this.langFound = this.voice ? this.voice.lang : null;
+  },
+  say(text){
+    if (!S.settings.voice || !('speechSynthesis' in window) || !text) return;
+    const clean = String(text).replace(/<[^>]+>/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'').replace(/km\/h/g,'quilómetros por hora').trim();
+    if (!clean) return;
+    try {
+      speechSynthesis.cancel();
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(clean);
+        u.lang = 'pt-PT'; if (this.voice) u.voice = this.voice;
+        u.rate = 0.95; u.pitch = 1.1; u.volume = Math.min(1, S.settings.volume + 0.2);
+        speechSynthesis.speak(u);
+      }, 80);
+    } catch(e){}
+  },
+  stop(){ try { speechSynthesis.cancel(); } catch(e){} }
+};
+if ('speechSynthesis' in window){ Voice.pick(); speechSynthesis.onvoiceschanged = () => Voice.pick(); }
+
+/* desbloquear áudio no primeiro toque (iOS/Android/Chrome) */
+['pointerdown','touchend','keydown'].forEach(ev => window.addEventListener(ev, () => Sound.unlock(), { once:false, passive:true, capture:true }));
+document.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.dataset.silent) Sound.play('click'); }, true);
+
+/* =========================================================
+   SINAIS – desenhos SVG (Regulamento de Sinalização do Trânsito)
+   ========================================================= */
+const COL = { red:'#d8232a', blue:'#1d5fb4', yellow:'#ffd200', black:'#111', white:'#fff' };
+const SCHEMES = {
+  perigo:{ border:COL.red, fill:COL.white, sym:COL.black, look:'Branco com borda vermelha' },
+  cedencia:{ border:COL.red, fill:COL.white, sym:COL.black, look:'Branco com borda vermelha' },
+  temp:{ border:COL.red, fill:COL.yellow, sym:COL.black, look:'Amarelo com borda vermelha' },
+  proib:{ ring:COL.red, fill:COL.white, sym:COL.black, look:'Branco com borda vermelha' },
+  proibAzul:{ ring:COL.red, fill:COL.blue, sym:COL.red, look:'Azul com borda vermelha' },
+  sentido:{ fill:COL.red, sym:COL.white, look:'Vermelho' },
+  stop:{ fill:COL.red, sym:COL.white, look:'Vermelho' },
+  obrig:{ fill:COL.blue, sym:COL.white, look:'Azul' },
+  info:{ fill:COL.blue, sym:COL.white, look:'Azul' },
+  prior:{ fill:COL.yellow, sym:COL.black, look:'Amarelo' },
+  blank:{ border:'#8aa0ae', ring:'#8aa0ae', fill:'#e6eef3', sym:'#8aa0ae', look:'' }
+};
+function fig(c, x, y, s){
+  return `<g transform="translate(${x},${y}) scale(${s})"><circle cx="0" cy="0" r="8" fill="${c}"/><path d="M-2 12 L-8 36 L-18 60 M-8 36 L6 58 M-4 18 L-16 32 M-4 18 L10 28" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+}
+function carRear(x, y, c){
+  return `<g fill="${c}"><path d="M${x+5} ${y+12} L${x+9} ${y} H${x+25} L${x+29} ${y+12} Z"/><rect x="${x}" y="${y+11}" width="34" height="16" rx="4"/><rect x="${x+2}" y="${y+26}" width="7" height="8" rx="2"/><rect x="${x+25}" y="${y+26}" width="7" height="8" rx="2"/></g><rect x="${x+11}" y="${y+3}" width="12" height="7" fill="#fff" opacity=".9"/>`;
+}
+function rotundaArrows(c){
+  let s = '';
+  for (let k=0;k<3;k++){
+    const a1 = (k*120 + 100) * Math.PI/180, a2 = a1 + 70*Math.PI/180, r = 25;
+    const p = a => [50 + r*Math.cos(a), 50 - r*Math.sin(a)];
+    const [x1,y1] = p(a1), [x2,y2] = p(a2);
+    const tx = -Math.sin(a2), ty = -Math.cos(a2), nx = Math.cos(a2), ny = -Math.sin(a2);
+    s += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${c}" stroke-width="8"/>`;
+    s += `<polygon points="${(x2+tx*12).toFixed(1)},${(y2+ty*12).toFixed(1)} ${(x2+nx*10).toFixed(1)},${(y2+ny*10).toFixed(1)} ${(x2-nx*10).toFixed(1)},${(y2-ny*10).toFixed(1)}" fill="${c}"/>`;
+  }
+  return s;
+}
+const SYM = {
+  peao: c => fig(c, 52, 20, 1.05),
+  peaoPassadeira: c => fig(c, 52, 14, .95) + [18,34,50,66].map(x=>`<rect x="${x}" y="84" width="11" height="9" fill="${c}"/>`).join(''),
+  criancas: c => fig(c, 36, 26, .9) + fig(c, 70, 42, .68),
+  animal: c => `<g fill="${c}"><rect x="18" y="40" width="50" height="24" rx="9"/><rect x="22" y="60" width="7" height="22" rx="2"/><rect x="34" y="60" width="7" height="22" rx="2"/><rect x="52" y="60" width="7" height="22" rx="2"/><rect x="61" y="60" width="7" height="22" rx="2"/><rect x="64" y="30" width="18" height="20" rx="6"/><path d="M66 30 L62 22 M80 30 L84 22" stroke="${c}" stroke-width="4" stroke-linecap="round"/><path d="M18 44 Q8 50 12 66" stroke="${c}" stroke-width="4" fill="none"/></g>`,
+  curva: c => `<path d="M40 88 L40 56 Q40 30 70 22" fill="none" stroke="${c}" stroke-width="13"/>`,
+  semaforo: () => `<rect x="36" y="10" width="28" height="80" rx="8" fill="#111"/><circle cx="50" cy="26" r="9" fill="#e53935"/><circle cx="50" cy="50" r="9" fill="#fbc02d"/><circle cx="50" cy="74" r="9" fill="#43a047"/>`,
+  obras: c => `<g fill="${c}" stroke="${c}" stroke-linecap="round" stroke-linejoin="round"><circle cx="38" cy="24" r="8" stroke="none"/><path d="M40 36 L54 56 L46 82 M54 56 L68 80 M44 42 L28 56" fill="none" stroke-width="8"/><path d="M28 56 L16 76" stroke-width="4"/><path d="M8 76 L22 72 L20 82 Z" stroke-width="2"/><path d="M62 90 Q76 66 94 90 Z" stroke="none"/></g>`,
+  bike: c => `<g fill="none" stroke="${c}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="64" r="16"/><circle cx="76" cy="64" r="16"/><path d="M26 64 L44 40 L68 40 L76 64 M26 64 L52 64 L44 40 M52 64 L68 40 M68 40 L65 30 L74 30 M38 35 L50 35"/></g>`,
+  carros: () => carRear(10, 34, COL.red) + carRear(56, 34, COL.black),
+  n50: c => `<text x="50" y="66" font-size="44" font-weight="900" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="${c}">50</text>`,
+  barra: () => `<rect x="16" y="41" width="68" height="18" fill="#fff"/>`,
+  diag: c => `<path d="M24 24 L76 76" stroke="${c}" stroke-width="11"/>`,
+  cruz: c => `<path d="M24 24 L76 76 M76 24 L24 76" stroke="${c}" stroke-width="11"/>`,
+  seta: c => `<polygon points="16,41 54,41 54,24 84,50 54,76 54,59 16,59" fill="${c}"/>`,
+  rotunda: c => rotundaArrows(c),
+  P: c => `<text x="50" y="74" font-size="70" font-weight="900" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="${c}">P</text>`,
+  H: c => `<text x="50" y="74" font-size="70" font-weight="900" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="${c}">H</text>`,
+  stop: c => `<text x="50" y="60" font-size="27" font-weight="900" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="${c}">STOP</text>`,
+  h7: () => `<polygon points="50,10 90,84 10,84" fill="#fff"/>` + fig('#111', 51, 36, .6) + [27,39,51,63].map(x=>`<rect x="${x}" y="72" width="8" height="6" fill="#111"/>`).join('')
+};
+const SYM_NAMES = { peao:'Peão', peaoPassadeira:'Peão na passadeira', criancas:'Crianças', animal:'Vaca', curva:'Curva', semaforo:'Semáforo', obras:'Trabalhador', bike:'Bicicleta', carros:'Dois carros', n50:'Número 50', barra:'Barra branca', diag:'Uma risca', cruz:'Duas riscas (X)', seta:'Seta', rotunda:'Setas em círculo', P:'Letra P', H:'Letra H', stop:'Palavra STOP', h7:'Peão no triângulo' };
+
+function octPts(r){ const p=[]; for(let i=0;i<8;i++){ const a=(22.5+45*i)*Math.PI/180; p.push((50+r*Math.cos(a)).toFixed(1)+','+(50+r*Math.sin(a)).toFixed(1)); } return p.join(' '); }
+function drawShape(shape, scheme, sym, size){
+  const sc = SCHEMES[scheme] || SCHEMES.blank; let body = '', tr = '';
+  switch(shape){
+    case 'tri':
+      body = `<polygon points="50,7 95,89 5,89" fill="${sc.border||sc.fill}" stroke="${sc.border||sc.fill}" stroke-width="7" stroke-linejoin="round"/><polygon points="50,25 81,81 19,81" fill="${sc.fill}"/>`;
+      tr = 'translate(50,62) scale(0.43) translate(-50,-50)'; break;
+    case 'triDown':
+      body = `<polygon points="5,11 95,11 50,93" fill="${sc.border||sc.fill}" stroke="${sc.border||sc.fill}" stroke-width="7" stroke-linejoin="round"/><polygon points="21,20 79,20 50,73" fill="${sc.fill}"/>`;
+      tr = 'translate(50,38) scale(0.35) translate(-50,-50)'; break;
+    case 'circle':
+      body = sc.ring ? `<circle cx="50" cy="50" r="47" fill="${sc.ring}"/><circle cx="50" cy="50" r="36" fill="${sc.fill}"/>` : `<circle cx="50" cy="50" r="47" fill="${sc.fill}" stroke="#fff" stroke-width="2.5"/>`;
+      tr = sc.ring ? 'translate(50,50) scale(0.62) translate(-50,-50)' : 'translate(50,50) scale(0.8) translate(-50,-50)'; break;
+    case 'oct':
+      body = `<polygon points="${octPts(48)}" fill="${sc.fill}"/><polygon points="${octPts(43)}" fill="none" stroke="#fff" stroke-width="2.5"/>`;
+      tr = ''; break;
+    case 'square':
+      body = `<rect x="5" y="5" width="90" height="90" rx="9" fill="${sc.fill}" stroke="#fff" stroke-width="2.5"/>`;
+      tr = 'translate(50,50) scale(0.85) translate(-50,-50)'; break;
+    case 'diamond':
+      body = `<rect x="17" y="17" width="66" height="66" transform="rotate(45 50 50)" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="27" y="27" width="46" height="46" transform="rotate(45 50 50)" fill="${sc.fill}"/>`;
+      tr = ''; break;
+  }
+  const symSvg = sym && SYM[sym] ? SYM[sym](sc.sym) : '';
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true">${body}<g transform="${tr}">${symSvg}</g></svg>`;
+}
+const SPECIAL = {
+  luzCarros: s => `<svg viewBox="0 0 100 100" width="${s}" height="${s}"><rect x="30" y="2" width="40" height="96" rx="10" fill="#1d2329"/><circle cx="50" cy="20" r="12" fill="#ff3b30"/><circle cx="50" cy="50" r="12" fill="#ffcc00"/><circle cx="50" cy="80" r="12" fill="#2fe06b"/></svg>`,
+  luzPeoes: s => `<svg viewBox="0 0 100 100" width="${s}" height="${s}"><rect x="26" y="2" width="48" height="96" rx="10" fill="#1d2329"/><rect x="32" y="8" width="36" height="40" rx="6" fill="#3a0c0c"/><rect x="32" y="52" width="36" height="40" rx="6" fill="#0b3318"/>
+     <g fill="#ff3b30"><circle cx="50" cy="15" r="4"/><rect x="45" y="20" width="10" height="16" rx="3"/><rect x="45" y="34" width="4" height="11"/><rect x="51" y="34" width="4" height="11"/></g>${fig('#2fe06b',51,59,.42)}</svg>`,
+  passadeira: s => `<svg viewBox="0 0 100 100" width="${s}" height="${s}"><rect x="2" y="10" width="96" height="80" rx="10" fill="#4f5a64"/>${[14,30,46,62,78].map(x=>`<rect x="${x}" y="18" width="9" height="64" fill="#fff"/>`).join('')}</svg>`,
+  linhaCont: s => `<svg viewBox="0 0 100 100" width="${s}" height="${s}"><rect x="10" y="2" width="80" height="96" rx="10" fill="#4f5a64"/><rect x="46" y="4" width="8" height="92" fill="#fff"/></svg>`,
+  linhaDesc: s => `<svg viewBox="0 0 100 100" width="${s}" height="${s}"><rect x="10" y="2" width="80" height="96" rx="10" fill="#4f5a64"/>${[6,34,62].map(y=>`<rect x="46" y="${y}" width="8" height="18" fill="#fff"/>`).join('')}</svg>`
+};
+
+const CATS = {
+  luminosa:{ name:'Semáforos', icon:'🚦' }, marcas:{ name:'Marcas na estrada', icon:'🦓' },
+  perigo:{ name:'Perigo', icon:'⚠️' }, cedencia:{ name:'Cedência de passagem', icon:'🛑' },
+  proibicao:{ name:'Proibição', icon:'⛔' }, obrigacao:{ name:'Obrigação', icon:'🔵' },
+  indicacao:{ name:'Indicação', icon:'🟦' }, temporaria:{ name:'Temporária (obras)', icon:'🚧' }
+};
+const SIGNS = [
+  { id:'semaforo-carros', name:'Semáforo para carros', cat:'luminosa', special:'luzCarros', lvl:1, desc:'Vermelho: parar. Amarelo: atenção, vai ficar vermelho, deve parar-se se for seguro. Verde: pode avançar-se, com cuidado.', find:'O semáforo dos carros' },
+  { id:'semaforo-peoes', name:'Semáforo para peões', cat:'luminosa', special:'luzPeoes', lvl:1, desc:'Boneco vermelho: espera no passeio. Boneco verde: podes atravessar, depois de olhar para os dois lados.', find:'O semáforo dos peões' },
+  { id:'passadeira', name:'Passadeira', cat:'marcas', special:'passadeira', lvl:1, desc:'As riscas brancas mostram onde os peões devem atravessar a estrada.', find:'A passadeira' },
+  { id:'h7', name:'Passagem para peões', cat:'indicacao', shape:'square', scheme:'info', sym:'h7', lvl:1, desc:'Sinal azul que mostra onde fica a passadeira.', find:'O sinal azul da passadeira' },
+  { id:'stop', name:'STOP', cat:'cedencia', shape:'oct', scheme:'stop', sym:'stop', lvl:2, desc:'Obriga a parar sempre, olhar bem e só avançar depois de deixar passar quem tem prioridade.', find:'O sinal que obriga a parar sempre' },
+  { id:'cedencia', name:'Cedência de passagem', cat:'cedencia', shape:'triDown', scheme:'cedencia', sym:null, lvl:2, desc:'Triângulo ao contrário: abranda e deixa passar primeiro quem vem na outra estrada.', find:'O triângulo ao contrário: deixa passar os outros' },
+  { id:'a-peoes', name:'Passagem de peões (perigo)', cat:'perigo', shape:'tri', scheme:'perigo', sym:'peaoPassadeira', lvl:2, desc:'Atenção! Mais à frente há uma passadeira. Os condutores devem abrandar.', find:'Aviso: vem aí uma passadeira' },
+  { id:'criancas', name:'Crianças', cat:'perigo', shape:'tri', scheme:'perigo', sym:'criancas', lvl:2, desc:'Cuidado! Há crianças por perto, por exemplo perto de uma escola ou de um parque.', find:'Aviso: crianças por perto' },
+  { id:'animais', name:'Animais', cat:'perigo', shape:'tri', scheme:'perigo', sym:'animal', lvl:2, desc:'Podem aparecer animais na estrada, como vacas. É preciso abrandar.', find:'Aviso: podem aparecer animais' },
+  { id:'curva', name:'Curva à direita', cat:'perigo', shape:'tri', scheme:'perigo', sym:'curva', lvl:2, desc:'Atenção, vem aí uma curva perigosa para a direita.', find:'Aviso: curva perigosa à direita' },
+  { id:'a-semaforos', name:'Sinais luminosos', cat:'perigo', shape:'tri', scheme:'perigo', sym:'semaforo', lvl:2, desc:'Atenção: mais à frente há semáforos.', find:'Aviso: vêm aí semáforos' },
+  { id:'obras', name:'Trabalhos na via', cat:'temporaria', shape:'tri', scheme:'temp', sym:'obras', lvl:3, desc:'Sinal temporário, de fundo amarelo: há obras na estrada. Cuidado com os trabalhadores.', find:'Aviso temporário: obras na estrada' },
+  { id:'sentido-proibido', name:'Sentido proibido', cat:'proibicao', shape:'circle', scheme:'sentido', sym:'barra', lvl:3, desc:'Não se pode entrar nesta rua por este lado.', find:'Proibido entrar nesta rua' },
+  { id:'transito-proibido', name:'Trânsito proibido', cat:'proibicao', shape:'circle', scheme:'proib', sym:null, lvl:3, desc:'É proibido passar com veículos, nos dois sentidos.', find:'Proibido passar veículos' },
+  { id:'proib-bicicletas', name:'Proibido velocípedes', cat:'proibicao', shape:'circle', scheme:'proib', sym:'bike', lvl:3, desc:'As bicicletas não podem passar por aqui.', find:'Proibido andar de bicicleta aqui' },
+  { id:'proib-peoes', name:'Proibido peões', cat:'proibicao', shape:'circle', scheme:'proib', sym:'peao', lvl:3, desc:'Os peões não podem passar por aqui.', find:'Proibido passar a pé' },
+  { id:'pista-bicicletas', name:'Pista obrigatória para velocípedes', cat:'obrigacao', shape:'circle', scheme:'obrig', sym:'bike', lvl:3, desc:'Caminho só para bicicletas: os ciclistas devem andar por aqui.', find:'Pista obrigatória para bicicletas' },
+  { id:'pista-peoes', name:'Pista obrigatória para peões', cat:'obrigacao', shape:'circle', scheme:'obrig', sym:'peao', lvl:3, desc:'Caminho para quem anda a pé: os peões devem usar este caminho.', find:'Caminho obrigatório para peões' },
+  { id:'sentido-obrigatorio', name:'Sentido obrigatório', cat:'obrigacao', shape:'circle', scheme:'obrig', sym:'seta', lvl:3, desc:'Só se pode seguir para o lado da seta.', find:'Só podes seguir para a direita' },
+  { id:'estac-proibido', name:'Estacionamento proibido', cat:'proibicao', shape:'circle', scheme:'proibAzul', sym:'diag', lvl:3, desc:'Uma risca: não se pode deixar o carro estacionado aqui.', find:'Proibido estacionar' },
+  { id:'estacionamento', name:'Parque de estacionamento', cat:'indicacao', shape:'square', scheme:'info', sym:'P', lvl:3, desc:'Aqui há um parque onde os carros podem estacionar.', find:'Parque de estacionamento' },
+  { id:'hospital', name:'Hospital', cat:'indicacao', shape:'square', scheme:'info', sym:'H', lvl:3, desc:'Por aqui vai-se para o hospital. Silêncio e cuidado!', find:'Hospital' },
+  { id:'paragem-estac-proibidos', name:'Paragem e estacionamento proibidos', cat:'proibicao', shape:'circle', scheme:'proibAzul', sym:'cruz', lvl:4, desc:'Duas riscas (X): não se pode parar nem estacionar aqui.', find:'Proibido parar e estacionar' },
+  { id:'vel-50', name:'Velocidade máxima 50', cat:'proibicao', shape:'circle', scheme:'proib', sym:'n50', lvl:4, desc:'Não se pode andar a mais de 50 km/h. É o limite normal dentro das localidades.', find:'Não andar a mais de 50 km/h' },
+  { id:'proib-ultrapassar', name:'Proibição de ultrapassar', cat:'proibicao', shape:'circle', scheme:'proib', sym:'carros', lvl:4, desc:'Os carros não podem ultrapassar outros carros aqui.', find:'Proibido ultrapassar' },
+  { id:'rotunda', name:'Rotunda', cat:'obrigacao', shape:'circle', scheme:'obrig', sym:'rotunda', lvl:4, desc:'Rotunda: circula-se à volta da ilha do meio, no sentido das setas.', find:'Rotunda: segue as setas à volta' },
+  { id:'prioridade', name:'Via com prioridade', cat:'cedencia', shape:'diamond', scheme:'prior', sym:null, lvl:4, desc:'Losango amarelo: quem está nesta estrada tem prioridade nos cruzamentos.', find:'Tenho prioridade nesta estrada' },
+  { id:'linha-continua', name:'Linha contínua', cat:'marcas', special:'linhaCont', lvl:4, desc:'Linha sem cortes: não se pode pisar nem passar por cima.', find:'A linha que não se pode pisar' },
+  { id:'linha-descontinua', name:'Linha descontínua', cat:'marcas', special:'linhaDesc', lvl:4, desc:'Linha aos bocadinhos: pode passar-se por cima, com cuidado, quando for seguro.', find:'A linha que se pode passar com cuidado' }
+];
+const SIGN = Object.fromEntries(SIGNS.map(s => [s.id, s]));
+function signSVG(id, size=90){ const s = SIGN[id]; if (!s) return ''; return s.special ? SPECIAL[s.special](size) : drawShape(s.shape, s.scheme, s.sym, size); }
+
+/* =========================================================
+   CONTEÚDOS – perguntas (Código da Estrada / ANSR)
+   ========================================================= */
+const dotR = '<span class="dot" style="background:#ff3b30"></span>', dotY = '<span class="dot" style="background:#ffcc00"></span>', dotG = '<span class="dot" style="background:#2fe06b"></span>';
+const BANKS = {
+  cores: [
+    { q:'Que cor do semáforo diz PARA?', opts:[dotR, dotY, dotG], exp:'Vermelho quer dizer PARAR. 🛑' },
+    { q:'Que cor do semáforo dos carros diz que podem andar?', opts:[dotG, dotR, dotY], exp:'Verde: os carros podem avançar, sempre com cuidado.' },
+    { q:'E o amarelo, o que diz aos carros?', opts:['Atenção! Vai ficar vermelho 🟡','Acelera depressa 💨','Podes buzinar 📯'], exp:'Amarelo é atenção: o vermelho vem a seguir e os carros devem parar se for seguro.' },
+    { q:'O boneco do semáforo dos peões está vermelho. O que fazes?', opts:['Espero no passeio 🧍','Atravesso a correr 🏃'], exp:'Com o boneco vermelho esperamos no passeio, bem longe da estrada.' },
+    { q:'Onde se atravessa a rua?', opts:[SPECIAL.passadeira(70), SPECIAL.linhaCont(70), '🌳'], exp:'Atravessa-se na passadeira, as riscas brancas!' },
+    { q:'Com quem dás a mão para atravessar a rua?', opts:['Com um adulto 👩‍👧','Com ninguém 🙅'], exp:'Os mais pequenos atravessam sempre de mão dada com um adulto.' },
+    { q:'Antes de atravessar, para onde olhas?', opts:['Para os dois lados 👀','Para o telemóvel 📱','Para o céu ☁️'], exp:'Paro, escuto e olho para a esquerda, para a direita e outra vez para a esquerda.' },
+    { q:'Onde se brinca com a bola?', opts:['No parque 🌳','Na estrada 🛣️'], exp:'A estrada é para os carros. Brincamos no parque ou no recreio.' },
+    { q:'Qual é o semáforo dos peões?', opts:[SPECIAL.luzPeoes(70), SPECIAL.luzCarros(70)], exp:'O semáforo dos peões tem um boneco vermelho e um boneco verde.' },
+    { q:'Onde andam os peões?', opts:['No passeio 🚶','No meio da estrada 🚗'], exp:'Os peões andam no passeio. Se não houver passeio, andam na berma.' }
+  ],
+  peoes: [
+    { s:'🧒⚽🛣️', q:'O Tomás joga à bola na estrada.', ok:false, exp:'A estrada é para os carros. Brinca no parque ou no recreio!' },
+    { s:'🧍‍♀️🚦🟢', q:'A Rita espera no passeio até o boneco ficar verde.', ok:true, exp:'Muito bem! Esperar pelo boneco verde é o que se deve fazer.' },
+    { s:'🏃🚙', q:'O Rui atravessa a correr por trás de um carro estacionado.', ok:false, exp:'Os carros estacionados escondem-nos. Atravessa na passadeira, onde os condutores te veem.' },
+    { s:'👩‍👧🦓', q:'A Ana dá a mão à mãe para atravessar na passadeira.', ok:true, exp:'Boa! De mão dada com um adulto e na passadeira.' },
+    { s:'📱🚶🛣️', q:'O Pedro atravessa a rua a olhar para o telemóvel.', ok:false, exp:'A atravessar, os olhos estão na estrada, nunca no telemóvel.' },
+    { s:'🌙🦺🚶', q:'À noite, o avô usa um colete refletor para andar na berma.', ok:true, exp:'Certo! As roupas claras e refletoras ajudam os condutores a ver-nos no escuro.' },
+    { s:'🚌🏃', q:'O João sai do autocarro e atravessa logo pela frente dele.', ok:false, exp:'O autocarro tapa a vista. Espera que ele parta e atravessa na passadeira.' },
+    { s:'🚗💺👧', q:'A Inês vai no banco de trás, na cadeirinha, com o cinto apertado.', ok:true, exp:'Perfeito! As crianças pequenas viajam numa cadeirinha adequada ao seu tamanho e peso.' },
+    { s:'🚗🪟🙆', q:'O Zé põe a cabeça de fora da janela do carro.', ok:false, exp:'Perigoso! Dentro do carro ficamos sentados e com o cinto posto.' },
+    { s:'🦓👀', q:'A Sara para no passeio, olha para os dois lados e só depois atravessa.', ok:true, exp:'Excelente! Parar, escutar e olhar antes de atravessar.' }
+  ],
+  bike: [
+    { sign:'pista-bicicletas', q:'Encontras este sinal. O que fazes?', opts:['Sigo pela pista das bicicletas','Vou para o meio da estrada','Desço da bicicleta e deito-a no chão'], exp:'Este sinal azul diz que as bicicletas devem andar por esta pista.' },
+    { sign:'proib-bicicletas', q:'E agora, com este sinal?', opts:['Não entro com a bicicleta por ali','Entro, mas devagar','Entro a tocar a campainha'], exp:'Círculo com borda vermelha é proibição: as bicicletas não podem passar.' },
+    { sign:'stop', q:'Chegas a um sinal de STOP. O que fazes?', opts:['Paro mesmo, olho e só depois avanço','Abrando um bocadinho e passo','Toco a campainha e passo'], exp:'No STOP para-se sempre, mesmo que não venha ninguém.' },
+    { sign:'semaforo-carros', q:'O semáforo está vermelho. O que fazes de bicicleta?', opts:['Paro e espero pelo verde','Passo porque sou pequeno','Passo pelo passeio'], exp:'As bicicletas também respeitam os semáforos.' },
+    { sign:'a-peoes', q:'Vem aí uma passadeira e está um senhor a atravessar.', opts:['Paro e deixo-o atravessar','Toco a campainha para ele correr','Passo à frente dele'], exp:'Quem está a atravessar na passadeira passa primeiro.' },
+    { sign:'sentido-proibido', q:'Este sinal está à entrada de uma rua.', opts:['Não entro nesta rua','Entro com cuidado','Entro se for rápido'], exp:'Sentido proibido: ninguém pode entrar por este lado.' },
+    { sign:'cedencia', q:'Encontras este triângulo ao contrário.', opts:['Abrando e deixo passar quem vem na outra estrada','Acelero para passar primeiro','Paro e saio da bicicleta'], exp:'Cedência de passagem: os outros passam primeiro.' },
+    { q:'Vais andar de bicicleta. O que deves pôr na cabeça?', scene:'🧒❓', opts:['O capacete ⛑️','Um boné 🧢','Nada'], exp:'O capacete protege a cabeça numa queda. É muito recomendado usá-lo sempre!' },
+    { q:'Está a escurecer. O que deve ter a tua bicicleta?', scene:'🌆🚲', opts:['Luzes acesas e refletores','Uma buzina bem alta','Fitas coloridas'], exp:'De noite, a bicicleta deve ter as luzes ligadas, para veres e seres visto.' },
+    { q:'Tens 8 anos e andas devagar de bicicleta. Podes andar no passeio?', scene:'🧒🚲', opts:['Sim, devagar e sem pôr os peões em perigo','Não, nunca','Sim, o mais rápido que conseguir'], exp:'O Código da Estrada deixa as crianças até aos 10 anos andar de bicicleta no passeio, sem pôr os peões em perigo.' },
+    { q:'Vais virar à esquerda. Como avisas os outros?', scene:'🚲⬅️', opts:['Estico o braço esquerdo','Grito bem alto','Não aviso'], exp:'Os ciclistas avisam com o braço para o lado para onde vão virar.' },
+    { q:'Podes levar um amigo sentado no guiador?', scene:'🚲👦👧', opts:['Não, é perigoso','Sim, se ele for leve'], exp:'Na bicicleta só se leva quem tem lugar próprio para ir.' }
+  ],
+  car: [
+    { sign:'rotunda', q:'Vais entrar numa rotunda e vem um carro lá dentro.', opts:['Deixo passar quem já está na rotunda','Entro primeiro','Buzino para ele parar'], exp:'Ao entrar numa rotunda, cede-se passagem a quem já lá circula.' },
+    { sign:'vel-50', q:'Vês este sinal. Qual é a velocidade máxima?', opts:['50 km/h','100 km/h','5 km/h'], exp:'Não se pode andar a mais de 50 km/h. Dentro das localidades este é o limite normal.' },
+    { sign:'proib-ultrapassar', q:'O que quer dizer este sinal com dois carros?', opts:['Não se pode ultrapassar','Só passam dois carros','Corrida de carros'], exp:'Proibição de ultrapassar: fica-se atrás do carro da frente.' },
+    { sign:'prioridade', q:'Vais numa estrada com este losango amarelo. E nos cruzamentos?', opts:['Tenho prioridade','Tenho de parar sempre','Não posso virar'], exp:'Via com prioridade: os outros devem ceder-te passagem nos cruzamentos.' },
+    { sign:'linha-continua', q:'No meio da estrada há uma linha contínua.', opts:['Não a posso pisar nem passar','Posso passar para ultrapassar','Posso estacionar em cima'], exp:'Linha contínua não se pisa nem se passa.' },
+    { sign:'paragem-estac-proibidos', q:'O pai quer parar aqui só um minuto.', opts:['Não pode parar nem estacionar aqui','Pode, se for rápido','Pode, com os piscas ligados'], exp:'Com o X não se pode parar nem estacionar.' },
+    { sign:'semaforo-carros', q:'O semáforo passa a amarelo e o carro ainda está longe.', opts:['Paro, se o puder fazer em segurança','Acelero para passar','Buzino'], exp:'O amarelo obriga a parar, exceto se já não for possível parar em segurança.' },
+    { sign:'criancas', q:'Estás a conduzir perto de uma escola e vês este sinal.', opts:['Abrando e tenho muita atenção','Mantenho a velocidade','Acelero para passar depressa'], exp:'Sinal de crianças: abrandar e redobrar a atenção.' },
+    { sign:'obras', q:'Aparece este sinal amarelo na estrada.', opts:['Abrando: há obras e trabalhadores','Ignoro, é só decoração','Paro o carro e saio'], exp:'Sinais de fundo amarelo são temporários: avisam de obras.' },
+    { sign:'a-peoes', q:'Vais virar para outra rua e há um peão a atravessar na passadeira.', opts:['Deixo o peão atravessar','Passo à frente dele','Buzino para ele se despachar'], exp:'Os condutores devem deixar passar os peões que já estão a atravessar.' }
+  ],
+  prioridades: [
+    { q:'Cruzamento sem sinais. Vem um carro da tua DIREITA. Quem passa primeiro?', scene:'🚗➡️✚⬅️🚙', opts:['O carro da direita','Eu','O que for mais depressa'], exp:'Sem sinais, cede-se passagem a quem vem pela direita.' },
+    { q:'Um agente manda parar, mas o semáforo está verde. A quem obedeces?', scene:'👮✋🟢', opts:['Ao agente','Ao semáforo','A nenhum'], exp:'As ordens dos agentes de trânsito valem mais do que os semáforos e os sinais.' },
+    { q:'Há um sinal de STOP mas o semáforo está verde. O que vale mais?', scene:'🛑🚦', opts:['O semáforo','O sinal de STOP','Os dois ao mesmo tempo'], exp:'Os semáforos valem mais do que os sinais verticais.' },
+    { q:'Numa rotunda, em que sentido se circula?', scene:'🔄', opts:['Com a ilha do meio à esquerda (ao contrário dos ponteiros do relógio)','Para onde quisermos','Com a ilha do meio à direita'], exp:'Em Portugal, nas rotundas, circula-se deixando a ilha central à esquerda.' },
+    { q:'Ouves uma ambulância com sirene atrás de ti.', scene:'🚑🔊', opts:['Encosto e deixo-a passar','Acelero para fugir','Paro no meio da estrada'], exp:'Os veículos de emergência com sirene e luzes têm prioridade: encosta-se para os deixar passar.' },
+    { q:'Qual é a diferença entre estes dois sinais?', visual:['estac-proibido','paragem-estac-proibidos'], opts:['Uma risca: não estacionar. X: não parar nem estacionar','São iguais','Uma risca: não parar. X: pode estacionar'], exp:'Uma risca proíbe estacionar; o X proíbe parar e estacionar.' },
+    { q:'Vais sair de casa de carro (de uma garagem) para a rua.', scene:'🏠🚗➡️🛣️', opts:['Deixo passar quem vai na rua','Saio primeiro','Buzino e saio'], exp:'Quem sai de uma garagem, parque ou caminho particular cede passagem a quem circula na via.' },
+    { q:'Na passadeira há um peão à espera para atravessar. O condutor deve…', scene:'🚗🦓🧍', opts:['Abrandar ou parar para o deixar passar','Passar depressa','Buzinar'], exp:'Junto das passadeiras os condutores abrandam e deixam passar os peões.' }
+  ],
+  condutores: [
+    { s:'📱🚗', q:'O pai usa o telemóvel na mão enquanto conduz.', ok:false, exp:'É proibido usar o telemóvel na mão a conduzir. Só com sistema de mãos livres.' },
+    { s:'🔒🚗', q:'A mãe aperta o cinto antes de arrancar.', ok:true, exp:'Muito bem! O cinto é obrigatório para todos, à frente e atrás.' },
+    { s:'🧒💺🚗', q:'O Rodrigo tem 9 anos e mede 1,30 m. Vai no banco da frente sem cadeirinha.', ok:false, exp:'Crianças com menos de 12 anos e menos de 135 cm vão num sistema de retenção (cadeirinha ou banco elevatório), em regra no banco de trás.' },
+    { s:'🚗🦓', q:'Um condutor estaciona em cima da passadeira.', ok:false, exp:'Nunca se estaciona em cima da passadeira: ela é para os peões.' },
+    { s:'🌙🚲💡', q:'Um ciclista anda à noite com as luzes acesas.', ok:true, exp:'Certo! De noite, as luzes ajudam a ver e a ser visto.' },
+    { s:'🏫🚗🐢', q:'Um carro abranda ao ver o sinal de crianças perto da escola.', ok:true, exp:'Exatamente! Perto das escolas, devagar.' },
+    { s:'🔄🚗', q:'Numa rotunda, o carro sai sem fazer pisca.', ok:false, exp:'Para sair da rotunda, liga-se o pisca para avisar os outros.' },
+    { s:'🟡🚗💨', q:'Com o semáforo amarelo, o condutor acelera para passar.', ok:false, exp:'O amarelo é para parar, se for seguro, e não para acelerar.' },
+    { s:'🚑🚗↘️', q:'Ao ouvir a sirene, a tia encosta o carro para deixar passar a ambulância.', ok:true, exp:'Muito bem! Os veículos de emergência têm prioridade.' },
+    { s:'🍷🚗', q:'Um condutor bebeu muito álcool e vai conduzir.', ok:false, exp:'Álcool e condução não combinam. Quem bebe não conduz!' }
+  ]
+};
+
+/* ---------- Recompensas ---------- */
+const STICKERS = [
+  ['🚗','Carro'],['🚲','Bicicleta'],['🚦','Semáforo'],['🛑','STOP'],['🚌','Autocarro'],['🚑','Ambulância'],['🚒','Bombeiros'],['🚓','Polícia'],
+  ['🛴','Trotinete'],['🚜','Trator'],['🚂','Comboio'],['🚕','Táxi'],['🏍️','Mota'],['⛑️','Capacete'],['🦺','Colete'],['🚧','Obras'],
+  ['🦓','Passadeira'],['👮','Agente'],['🚸','Crianças'],['🛣️','Estrada'],['🗺️','Mapa'],['⛽','Bomba'],['🅿️','Parque'],['🏥','Hospital'],
+  ['🐄','Vaca'],['🐶','Cão'],['🌈','Arco-íris'],['⭐','Estrela'],['🏆','Taça'],['🎖️','Medalha'],['🚀','Foguetão'],['🦄','Unicórnio'],
+  ['🚁','Helicóptero'],['⛵','Barco'],['🎡','Roda gigante'],['🏰','Castelo']
+];
+const VEHICLES = [ ['🚲','Bicicleta',0], ['🛴','Trotinete',20], ['🚗','Carro',30], ['🚕','Táxi',40], ['🚌','Autocarro',60], ['🚒','Bombeiros',80], ['🚑','Ambulância',80], ['🚓','Polícia',100], ['🚜','Trator',120], ['🏎️','Fórmula 1',150] ];
+const AVATARS = ['🦊','🐼','🐯','🐸','🦁','🐰','🐨','🐵','🦄','🐶','🐱','🐙','🐻','🐷','🐧','🦖'];
+const AV_COLORS = ['#ffd6a5','#caffbf','#9bf6ff','#bdb2ff','#ffc6ff','#fdffb6','#ffadad','#a0c4ff'];
+const AGES = [ ['3–4 anos',1], ['5–6 anos',2], ['7–8 anos',3], ['9–10 anos',4], ['11–12 anos',5] ];
+
+/* ---------- Níveis (do documento do projeto) ---------- */
+const LEVELS = [
+  { n:1, name:'Pequeno Peão', age:'3–4 anos', icon:'🚦', color:'#2fb67c', diploma:'Especialista em Semáforos', intro:'Vamos aprender os semáforos, as cores e as passadeiras!',
+    games:[ { id:'l1-cross', type:'cross', title:'Semáforo mágico', icon:'🚦', desc:'Atravessa quando o boneco ficar verde' },
+            { id:'l1-quiz', type:'quiz', bank:'cores', n:8, title:'Cores e passadeiras', icon:'🎨', desc:'Responde com as cores certas' },
+            { id:'l1-mem', type:'memory', pool:1, pairs:4, title:'Jogo da memória', icon:'🃏', desc:'Encontra os pares' } ] },
+  { n:2, name:'Explorador', age:'5–6 anos', icon:'🧭', color:'#f2a33a', diploma:'Peão Responsável', intro:'O STOP, os sinais de perigo e as regras dos peões!',
+    games:[ { id:'l2-signs', type:'signquiz', pool:2, cats:['cedencia','perigo','indicacao','marcas','luminosa'], n:8, title:'Qual é o sinal?', icon:'❓', desc:'Descobre o que quer dizer cada sinal' },
+            { id:'l2-det', type:'detective', bank:'peoes', title:'Detetive da estrada', icon:'🔍', desc:'Certo ou errado?' },
+            { id:'l2-build', type:'build', targets:['stop','cedencia','criancas','a-peoes','animais'], title:'Constrói o sinal', icon:'🛠️', desc:'Forma, cor e desenho' },
+            { id:'l2-mem', type:'memory', pool:2, pairs:5, title:'Jogo da memória', icon:'🃏', desc:'Sinais e significados' } ] },
+  { n:3, name:'Ciclista Júnior', age:'7–8 anos', icon:'🚲', color:'#2d8cd6', diploma:'Ciclista Seguro', intro:'Sinais de obrigação, de proibição e regras da bicicleta!',
+    games:[ { id:'l3-bike', type:'road', bank:'bike', veh:'🚲', title:'Aventura de bicicleta', icon:'🚲', desc:'Pedala e reage aos sinais' },
+            { id:'l3-signs', type:'signquiz', pool:3, cats:['proibicao','obrigacao','indicacao','temporaria'], n:8, title:'Proibição ou obrigação?', icon:'⛔', desc:'Sinais redondos e quadrados' },
+            { id:'l3-build', type:'build', targets:['proib-bicicletas','pista-bicicletas','sentido-proibido','estac-proibido','sentido-obrigatorio','hospital'], title:'Constrói o sinal', icon:'🛠️', desc:'Forma, cor e desenho' },
+            { id:'l3-mem', type:'memory', pool:3, pairs:6, title:'Jogo da memória', icon:'🃏', desc:'Mais sinais, mais pares' } ] },
+  { n:4, name:'Condutor Júnior', age:'9–10 anos', icon:'🚗', color:'#8e5bd6', diploma:'Mestre dos Sinais', intro:'Prioridades, cruzamentos e rotundas!',
+    games:[ { id:'l4-drive', type:'road', bank:'car', veh:null, title:'Conduz pela cidade', icon:'🏙️', desc:'Reage a cada sinal' },
+            { id:'l4-prio', type:'quiz', bank:'prioridades', n:8, title:'Quem passa primeiro?', icon:'🔀', desc:'Cruzamentos e rotundas' },
+            { id:'l4-flash', type:'flash', pool:4, time:8, rounds:8, title:'Desafio relâmpago', icon:'⚡', desc:'Encontra o sinal depressa' } ] },
+  { n:5, name:'Mestre da Estrada', age:'11–12 anos', icon:'🏆', color:'#e2483d', diploma:'MiniCondutor de Portugal', intro:'Desafios difíceis para verdadeiros mestres!',
+    games:[ { id:'l5-flash', type:'flash', pool:5, time:5, rounds:10, title:'Relâmpago turbo', icon:'⚡', desc:'Ainda mais rápido!' },
+            { id:'l5-det', type:'detective', bank:'condutores', title:'Detetive dos condutores', icon:'🕵️', desc:'Quem está a conduzir bem?' },
+            { id:'l5-exam', type:'exam', title:'Grande exame', icon:'📝', desc:'Mistura de tudo' },
+            { id:'l5-mem', type:'memory', pool:5, pairs:8, title:'Memória de mestre', icon:'🃏', desc:'8 pares!' } ] }
+];
+
+/* =========================================================
+   PERFIS e PROGRESSO
+   ========================================================= */
+function newProfile(name, avatar, color, ageLvl){
+  return { id:uid(), name, avatar, color, ageLvl, coins:10, stickers:[], vehicles:['🚲'], vehicle:'🚲', progress:{}, signStats:{}, diplomas:[], unlockAll:false, plays:0, created:Date.now() };
+}
+const gameStars = (p, gid) => (p.progress[gid] || 0);
+const levelStars = (p, L) => L.games.reduce((a,g) => a + gameStars(p, g.id), 0);
+const levelDone = (p, L) => L.games.every(g => gameStars(p, g.id) > 0);
+const levelUnlocked = (p, L) => p.unlockAll || L.n <= p.ageLvl || (L.n > 1 && levelDone(p, LEVELS[L.n-2]));
+const totalStars = p => LEVELS.reduce((a,L) => a + levelStars(p, L), 0);
+function stat(signId, ok){ const p = P(); if (!p || !signId) return; const s = p.signStats[signId] || (p.signStats[signId] = {ok:0, err:0}); ok ? s.ok++ : s.err++; }
+function weightedSigns(pool, n){
+  const p = P();
+  const w = pool.map(s => { const st = p.signStats[s.id] || {ok:0,err:0}; return { s, w: Math.max(0.5, 1 + st.err*2 - st.ok*0.3) }; });
+  const out = [];
+  while (out.length < n && w.length){
+    const tot = w.reduce((a,x)=>a+x.w,0); let r = Math.random()*tot, i = 0;
+    for (; i<w.length; i++){ r -= w[i].w; if (r <= 0) break; }
+    out.push(w.splice(Math.min(i, w.length-1),1)[0].s);
+  }
+  return out;
+}
+
+/* =========================================================
+   UI base
+   ========================================================= */
+const app = $('#app'), layer = $('#layer');
+let cleanup = [];
+function clearGame(){ cleanup.forEach(f => { try{ f(); }catch(e){} }); cleanup = []; Voice.stop(); }
+function later(fn, ms){ const t = setTimeout(fn, ms); cleanup.push(() => clearTimeout(t)); return t; }
+function every(fn, ms){ const t = setInterval(fn, ms); cleanup.push(() => clearInterval(t)); return t; }
+let currentTab = 'city';
+function render(html, opts={}){
+  clearGame(); layer.innerHTML = '';
+  app.innerHTML = html + (opts.nav ? navHTML() : '');
+  window.scrollTo(0,0);
+  if (opts.nav) bindNav();
+}
+function navHTML(){
+  const items = [['city','🏙️','Cidade'],['lib','📚','Sinais'],['stickers','⭐','Cromos'],['garage','🚗','Garagem'],['parents','👪','Pais']];
+  return `<nav class="nav"><div class="in">${items.map(([k,i,t]) => `<button data-nav="${k}" class="${currentTab===k?'on':''}"><b>${i}</b>${t}</button>`).join('')}</div></nav>`;
+}
+function bindNav(){ $$('[data-nav]').forEach(b => b.onclick = () => { currentTab = b.dataset.nav; ({city:screenHome, lib:screenLibrary, stickers:screenStickers, garage:screenGarage, parents:screenParentsGate})[currentTab](); }); }
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2200); }
+function confetti(){
+  const c = document.createElement('div'); c.className = 'confetti';
+  const cols = ['#ffc93c','#ff6b5b','#2fb67c','#2d8cd6','#8e5bd6','#0f8a8a'];
+  for (let i=0;i<60;i++){ const e = document.createElement('i'); e.style.left = Math.random()*100+'%'; e.style.background = pick(cols); e.style.animationDelay = (Math.random()*0.8)+'s'; e.style.animationDuration = (1.6+Math.random()*1.4)+'s'; c.appendChild(e); }
+  document.body.appendChild(c); setTimeout(() => c.remove(), 3800);
+}
+function modal(html, onMount){
+  const m = document.createElement('div'); m.className = 'modal'; m.innerHTML = `<div class="box">${html}</div>`;
+  layer.appendChild(m); const close = () => m.remove();
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+  if (onMount) onMount(m, close);
+  return close;
+}
+const avatarHTML = (p, cls='') => `<span class="avatar ${cls}" style="background:${p.color}">${p.avatar}</span>`;
+const starsHTML = (n, max=3) => `<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(Math.max(0,max-n))}</span></span>`;
+
+/* =========================================================
+   ECRÃS: Perfis
+   ========================================================= */
+function screenProfiles(){
+  render(`
+    <div class="hero">
+      <span class="cloud" style="left:8%;top:12px">☁️</span><span class="cloud" style="right:12%;top:28px;animation-delay:1s">☁️</span>
+      <div class="brand">Mini<span>Condutores</span></div>
+      <p style="margin:4px 0 0;font-weight:700;max-width:70%">Regras e sinais da estrada de Portugal 🇵🇹</p>
+      <div class="road"></div><div class="drive">🚌</div><div class="drive" style="animation-delay:-4s">🚲</div>
+    </div>
+    <h2 style="margin-top:18px">Quem vai jogar?</h2>
+    <div class="grid g3" style="margin-top:10px">
+      ${S.profiles.map(p => `<button class="profile-tile" data-p="${p.id}">${avatarHTML(p,'lg')}<span>${esc(p.name)}</span><span class="stars" style="font-size:14px">★ ${totalStars(p)}</span></button>`).join('')}
+      <button class="profile-tile" id="addP" style="color:var(--teal)"><span class="avatar lg" style="background:var(--teal-l)">➕</span><span>Novo perfil</span></button>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div class="row"><span style="font-size:28px">🔊</span><div class="grow"><b>Liga o som!</b><div class="muted" style="font-size:14px">O jogo tem efeitos sonoros e uma voz que lê as perguntas.</div></div><button class="btn small sun" id="testS">Testar</button></div>
+    </div>`);
+  $$('[data-p]').forEach(b => b.onclick = () => { S.current = b.dataset.p; save(); currentTab='city'; Sound.play('pop'); const p=P(); Voice.say(`Olá, ${p.name}!`); screenHome(); });
+  $('#addP').onclick = () => screenNewProfile();
+  $('#testS').onclick = testSounds;
+}
+function screenNewProfile(){
+  let av = pick(AVATARS), col = pick(AV_COLORS), age = null;
+  render(`
+    <div class="topbar"><button class="iconbtn" id="back">⬅️</button><h2>Novo perfil</h2></div>
+    <div class="card center">
+      <div id="prev" style="margin-bottom:10px"></div>
+      <input type="text" id="nm" maxlength="14" placeholder="Nome da criança" autocomplete="off">
+      <h3 style="margin-top:16px;text-align:left">Escolhe um amigo</h3>
+      <div class="grid g4" id="avs">${AVATARS.map(a => `<button class="choice" data-a="${a}">${a}</button>`).join('')}</div>
+      <h3 style="margin-top:16px;text-align:left">Cor</h3>
+      <div class="grid g4" id="cols">${AV_COLORS.map(c => `<button class="choice" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+      <h3 style="margin-top:16px;text-align:left">Idade</h3>
+      <div class="grid g3" id="ages">${AGES.map(([t,l]) => `<button class="choice" data-g="${l}" style="font-size:16px;font-weight:800">${t}</button>`).join('')}</div>
+      <button class="btn big" id="ok" style="margin-top:20px;width:100%">Criar perfil ✨</button>
+    </div>`);
+  const upd = () => {
+    $('#prev').innerHTML = `<span class="avatar lg" style="background:${col}">${av}</span>`;
+    $$('#avs .choice').forEach(b => b.classList.toggle('sel', b.dataset.a === av));
+    $$('#cols .choice').forEach(b => b.classList.toggle('sel', b.dataset.c === col));
+    $$('#ages .choice').forEach(b => b.classList.toggle('sel', +b.dataset.g === age));
+  };
+  upd();
+  $$('#avs .choice').forEach(b => b.onclick = () => { av = b.dataset.a; upd(); });
+  $$('#cols .choice').forEach(b => b.onclick = () => { col = b.dataset.c; upd(); });
+  $$('#ages .choice').forEach(b => b.onclick = () => { age = +b.dataset.g; upd(); });
+  $('#back').onclick = screenProfiles;
+  $('#ok').onclick = () => {
+    const name = $('#nm').value.trim();
+    if (!name){ $('#nm').classList.add('shake'); setTimeout(()=>$('#nm').classList.remove('shake'),400); Sound.play('wrong'); Voice.say('Escreve o teu nome.'); return; }
+    if (!age){ $('#ages').classList.add('shake'); setTimeout(()=>$('#ages').classList.remove('shake'),400); Sound.play('wrong'); Voice.say('Escolhe a idade.'); return; }
+    const p = newProfile(name, av, col, age);
+    S.profiles.push(p); S.current = p.id; save();
+    Sound.play('levelUp'); confetti(); Voice.say(`Bem-vindo, ${name}! Vamos aprender as regras da estrada.`);
+    currentTab = 'city'; screenHome();
+  };
+}
+
+/* =========================================================
+   ECRÃ: Cidade (mapa de níveis)
+   ========================================================= */
+function topBar(){
+  const p = P();
+  return `<div class="topbar">
+    <button id="who" style="display:flex;align-items:center;gap:8px">${avatarHTML(p)}<b style="font-size:19px">${esc(p.name)}</b></button>
+    <span class="grow"></span>
+    <span class="pill">⭐ ${totalStars(p)}</span><span class="pill">🪙 ${p.coins}</span>
+    <button class="iconbtn" id="sett">⚙️</button>
+  </div>`;
+}
+function bindTop(){ $('#who').onclick = screenProfiles; $('#sett').onclick = screenSettings; }
+function screenHome(){
+  const p = P(); if (!p) return screenProfiles();
+  currentTab = 'city';
+  render(`${topBar()}
+    <div class="hero" style="min-height:130px">
+      <span class="cloud" style="right:10%;top:10px">☁️</span>
+      <h2 style="margin:0">A tua cidade</h2>
+      <p style="margin:2px 0;font-weight:700;max-width:75%">Completa os desafios de cada bairro para desbloquear o seguinte!</p>
+      <div class="road"></div><div class="drive">${p.vehicle}</div>
+    </div>
+    <div class="path" style="margin-top:16px">
+      ${LEVELS.map(L => { const un = levelUnlocked(p, L), st = levelStars(p, L), max = L.games.length*3, done = levelDone(p,L);
+        return `<button class="level ${un?'':'locked'}" data-l="${L.n}">
+          <span class="bubble" style="background:${L.color}">${L.icon}</span>
+          <span class="grow"><span class="muted" style="font-size:13px;font-weight:800">NÍVEL ${L.n} · ${L.age}</span><br><b style="font-size:20px">${L.name}</b>
+          <span class="progress" style="display:block;margin-top:6px"><i style="width:${Math.round(st/max*100)}%;background:${L.color}"></i></span>
+          <span class="muted" style="font-size:13px;font-weight:700">★ ${st}/${max} ${done?'· 🎓 '+L.diploma:''}</span></span>
+          ${un ? '' : '<span class="lock">🔒</span>'}</button>`; }).join('')}
+    </div>`, { nav:true });
+  bindTop();
+  $$('[data-l]').forEach(b => b.onclick = () => {
+    const L = LEVELS[+b.dataset.l - 1];
+    if (!levelUnlocked(p, L)){ Sound.play('wrong'); const prev = LEVELS[L.n-2]; toast(`🔒 Completa primeiro todos os desafios do nível «${prev.name}»`); Voice.say(`Primeiro completa o nível ${prev.name}.`); return; }
+    screenLevel(L);
+  });
+}
+function screenLevel(L){
+  const p = P();
+  render(`
+    <div class="topbar"><button class="iconbtn" id="back">⬅️</button><span class="grow"></span><span class="pill">⭐ ${levelStars(p,L)}/${L.games.length*3}</span></div>
+    <div class="card" style="background:${L.color};color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18)">
+      <div class="row"><span style="font-size:54px">${L.icon}</span><div class="grow"><div style="font-weight:800;opacity:.9">NÍVEL ${L.n} · ${L.age}</div><h1 style="margin:0">${L.name}</h1></div><button class="sayb" id="say">🔊</button></div>
+      <p style="margin:6px 0 0;font-weight:700">${L.intro}</p>
+    </div>
+    <div class="path" style="margin-top:16px">
+      ${L.games.map(g => `<button class="game-tile" data-g="${g.id}"><span class="ic">${g.icon}</span><span class="grow"><b style="font-size:19px">${g.title}</b><br><span class="muted" style="font-size:14px;font-weight:700">${g.desc}</span></span>${starsHTML(gameStars(p,g.id))}</button>`).join('')}
+    </div>
+    ${levelDone(p,L) ? `<button class="btn sun big" id="dip" style="width:100%;margin-top:18px">🎓 Ver diploma</button>` : ''}`);
+  $('#back').onclick = screenHome;
+  $('#say').onclick = () => Voice.say(`Nível ${L.n}, ${L.name}. ${L.intro}`);
+  if ($('#dip')) $('#dip').onclick = () => showDiploma(L);
+  $$('[data-g]').forEach(b => b.onclick = () => startGame(L, L.games.find(g => g.id === b.dataset.g)));
+  later(() => Voice.say(`${L.name}. ${L.intro}`), 300);
+}
+
+/* =========================================================
+   MOTOR DE JOGOS
+   ========================================================= */
+function startGame(L, g){
+  const ctx = { L, g };
+  switch(g.type){
+    case 'cross': return gameCross(ctx);
+    case 'quiz': return gameQuiz(ctx, prepBank(g.bank, g.n));
+    case 'signquiz': return gameQuiz(ctx, signQuestions(SIGNS.filter(s => s.lvl <= g.pool && (!g.cats || g.cats.includes(s.cat))), g.n));
+    case 'detective': return gameQuiz(ctx, detectiveQs(g.bank), { detective:true });
+    case 'road': return gameQuiz(ctx, prepBank(g.bank, 8), { road: g.veh || P().vehicle || '🚗' });
+    case 'memory': return gameMemory(ctx);
+    case 'build': return gameBuild(ctx);
+    case 'flash': return gameFlash(ctx);
+    case 'exam': return gameQuiz(ctx, examQs(), {});
+  }
+}
+function hud(L, i, n, extra=''){
+  return `<div class="hud"><button class="iconbtn" id="quit">✖️</button><div class="progress"><i style="width:${Math.round(i/n*100)}%;background:${L.color}"></i></div><b>${i}/${n}</b>${extra}</div>`;
+}
+function bindQuit(L){ $('#quit').onclick = () => { Sound.play('click'); screenLevel(L); }; }
+function optHTML(o){ return typeof o === 'string' && o.trim().startsWith('<') ? o : esc(o); }
+function prepBank(name, n){
+  const b = shuffle(BANKS[name]).slice(0, n || BANKS[name].length);
+  return b.map(x => {
+    const opts = x.opts.map((o,i) => ({ html:optHTML(o), text: typeof o === 'string' && !o.trim().startsWith('<') ? o : '', ok:i===0 }));
+    let visual = '';
+    if (x.sign) visual = `<div class="signbox">${signSVG(x.sign, 120)}</div>`;
+    else if (x.visual) visual = `<div class="signbox" style="gap:18px">${x.visual.map(v => signSVG(v, 100)).join('')}</div>`;
+    else if (x.scene) visual = `<div class="scene-emoji">${x.scene}</div>`;
+    const vis = opts.some(o => !o.text);
+    return { q:x.q, visual, sign:x.sign, opts:shuffle(opts), exp:x.exp, vis, signId:x.sign };
+  });
+}
+function signQuestions(pool, n){
+  const chosen = weightedSigns(pool, Math.min(n, pool.length));
+  return chosen.map((s, i) => {
+    const others = shuffle(pool.filter(o => o.id !== s.id)).slice(0, 2);
+    if (i % 2 === 0){
+      return { q:'O que quer dizer este sinal?', visual:`<div class="signbox">${signSVG(s.id,130)}</div>`, opts:shuffle([s, ...others].map(o => ({ html:esc(o.find), text:o.find, ok:o.id===s.id }))), exp:`${s.name}: ${s.desc}`, signId:s.id };
+    }
+    return { q:`Qual é o sinal: «${s.find}»?`, visual:'', vis:true, opts:shuffle([s, ...others].map(o => ({ html:signSVG(o.id, 84), text:'', ok:o.id===s.id }))), exp:`${s.name}: ${s.desc}`, signId:s.id, grid:true };
+  });
+}
+function detectiveQs(bank){
+  return shuffle(BANKS[bank]).slice(0, 8).map(x => ({
+    q:x.q, visual:`<div class="scene-emoji">${x.s}</div>`, exp:x.exp,
+    opts:[ { html:'👍 Está certo', text:'Está certo', ok:x.ok }, { html:'👎 Está errado', text:'Está errado', ok:!x.ok } ], pre:'Detetive, isto está certo ou errado?'
+  }));
+}
+function examQs(){
+  const sq = signQuestions(SIGNS, 4);
+  return shuffle([ ...sq, ...prepBank('car', 2), ...prepBank('prioridades', 2), ...detectiveQs('condutores').slice(0,2) ]);
+}
+
+/* ---------- Quiz genérico (inclui detetive e estrada) ---------- */
+function gameQuiz(ctx, qs, mode={}){
+  const { L, g } = ctx; let i = 0, right = 0;
+  const show = () => {
+    if (i >= qs.length) return finish(ctx, right / qs.length);
+    const q = qs[i];
+    const roadHTML = mode.road ? `<div class="roadscene" id="rs"><div class="asphalt"></div><div class="lane"></div><span class="tree">🌳</span><span class="tree" style="animation-delay:-1.2s">🌲</span>
+        ${q.sign ? `<div class="rsign">${signSVG(q.sign, 86)}<div class="pole"></div></div>` : `<div class="rsign" style="font-size:52px;background:#fff;border-radius:18px;padding:4px 8px">${(q.visual.match(/scene-emoji">([^<]*)/)||[])[1]||'❓'}</div>`}
+        <span class="veh" id="veh">${mode.road}</span></div>` : '';
+    const cols = q.grid || (q.vis && q.opts.length >= 3) ? 'g3' : (q.vis ? 'g2' : '');
+    render(`${hud(L, i, qs.length)}
+      ${roadHTML}
+      <div class="qcard">
+        ${mode.road ? '' : q.visual}
+        <div class="row" style="align-items:flex-start"><div class="qtext grow">${q.pre ? `<div class="muted" style="font-size:15px">${q.pre}</div>` : ''}${esc(q.q)}</div><button class="sayb" id="say">🔊</button></div>
+        <div class="opts ${cols ? 'grid '+cols : ''}">${q.opts.map((o,k) => `<button class="opt ${q.vis?'vis':''}" data-k="${k}" data-silent="1">${o.html}</button>`).join('')}</div>
+        <div id="fb"></div>
+      </div>`);
+    bindQuit(L);
+    const speakQ = () => Voice.say((q.pre ? q.pre + ' ' : '') + q.q + (q.vis ? '' : ' ' + q.opts.map(o => o.text).filter(Boolean).join('? Ou ') + '?'));
+    $('#say').onclick = speakQ;
+    if (mode.road){ Sound.play(mode.road === '🚲' ? 'bell' : 'engine'); later(speakQ, 900); } else later(speakQ, 250);
+    let answered = false;
+    $$('.opt').forEach(b => b.onclick = () => {
+      if (answered) return; answered = true;
+      const o = q.opts[+b.dataset.k];
+      $$('.opt').forEach((x,k) => { if (q.opts[k].ok) x.classList.add('ok'); else if (x !== b) x.classList.add('dim'); });
+      if (o.ok){ right++; Sound.play('correct'); b.classList.add('bounce'); }
+      else { b.classList.add('no','shake'); Sound.play('wrong'); }
+      if (q.signId) stat(q.signId, o.ok);
+      const praise = pick(['Muito bem!','Boa!','Fantástico!','Isso mesmo!','Excelente!']);
+      const fbtext = o.ok ? `${praise} ${q.exp}` : `Quase! ${q.exp}`;
+      $('#fb').innerHTML = `<div class="feedback ${o.ok?'ok':'no'}">${o.ok?'✅':'💡'} ${esc(fbtext)}</div><button class="btn big" id="next" style="width:100%;margin-top:12px">Continuar ➜</button>`;
+      Voice.say(fbtext);
+      if (mode.road && o.ok){ later(() => { const v = $('#veh'); if (v){ v.classList.add('go'); Sound.play(mode.road === '🚲' ? 'bell' : 'engine'); } }, 300); }
+      if (mode.road && !o.ok){ $('#rs') && $('#rs').classList.add('stop'); Sound.play('horn'); }
+      $('#next').onclick = () => { i++; show(); };
+      $('#next').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    });
+  };
+  show();
+}
+
+/* ---------- Semáforo mágico (atravessar) ---------- */
+function gameCross(ctx){
+  const { L } = ctx; const p = P(); const GOAL = 5;
+  let phase = 'red', looked = false, crossing = false, success = 0, mistakes = 0;
+  render(`${hud(L, 0, GOAL)}
+    <div class="cross" id="cr">
+      <div class="walk t"></div><div class="street"><div class="zebra"></div></div><div class="walk b"></div>
+      <div id="cars"></div>
+      <div class="light"><span class="r on" id="lr">🧍</span><span class="g" id="lg">🚶</span></div>
+      <div class="kid" id="kid">${p.avatar}</div>
+    </div>
+    <div class="feedback ok" id="msg" style="text-align:center">Espera pelo boneco verde. Primeiro olha 👀, depois atravessa 🚶</div>
+    <div class="grid g2" style="margin-top:12px">
+      <button class="btn big sun" id="look">👀 Olhar</button>
+      <button class="btn big" id="go">🚶 Atravessar</button>
+    </div>`);
+  bindQuit(L);
+  later(() => Voice.say('Semáforo mágico! Espera pelo boneco verde. Primeiro carrega em olhar, depois em atravessar.'), 200);
+  const msg = (t, ok=true) => { const m = $('#msg'); if (!m) return; m.className = 'feedback ' + (ok?'ok':'no'); m.textContent = t; };
+  const setLight = () => {
+    const r = $('#lr'), gg = $('#lg'); if (!r) return;
+    r.classList.toggle('on', phase === 'red');
+    gg.classList.toggle('on', phase !== 'red'); gg.classList.toggle('blink', phase === 'blink');
+  };
+  const spawnCar = () => {
+    const box = $('#cars'); if (!box) return;
+    const c = document.createElement('div'); c.className = 'car' + (Math.random() < .5 ? ' b' : '');
+    c.textContent = pick(['🚗','🚙','🚌','🚕','🚚','🏍️']); box.appendChild(c);
+    Sound.play('carPass'); setTimeout(() => c.remove(), 1800);
+  };
+  const cycle = () => {
+    phase = 'red'; setLight();
+    later(spawnCar, 300); later(spawnCar, 1500); later(spawnCar, 2700);
+    later(() => { phase = 'green'; setLight(); Sound.play('pedBeep');
+      for (let k=1;k<9;k++) later(() => { if (phase !== 'red') Sound.play('pedBeep'); }, k*450); }, 4600);
+    later(() => { phase = 'blink'; setLight(); }, 8600);
+    later(cycle, 10200);
+  };
+  cycle();
+  $('#look').onclick = () => {
+    if (crossing) return;
+    const k = $('#kid'); k.classList.remove('look'); void k.offsetWidth; k.classList.add('look');
+    looked = true; Voice.say('Esquerda, direita, esquerda!'); msg('👀 Olhaste para os dois lados. Muito bem!');
+  };
+  $('#go').onclick = () => {
+    if (crossing) return;
+    if (phase === 'red'){ mistakes++; Sound.play('horn'); Sound.play('wrong'); $('#cr').classList.add('shake'); setTimeout(()=>$('#cr') && $('#cr').classList.remove('shake'),400);
+      msg('Espera! O boneco está vermelho. Os carros estão a passar.', false); Voice.say('Espera! O boneco está vermelho.'); return; }
+    if (phase === 'blink'){ mistakes++; Sound.play('wrong'); msg('O verde está a piscar: não se começa a atravessar. Espera pelo próximo verde.', false); Voice.say('O verde está a piscar. Não comeces a atravessar.'); return; }
+    if (!looked){ Sound.play('whistle'); msg('Antes de atravessar, olha para os dois lados! Carrega em 👀', false); Voice.say('Primeiro olha para os dois lados!'); return; }
+    crossing = true; const k = $('#kid'); k.classList.add('up'); Sound.play('correct');
+    msg('Boa! A atravessar na passadeira com o boneco verde. 🎉');
+    later(() => {
+      success++; looked = false; crossing = false;
+      const kk = $('#kid'); if (kk){ kk.style.transition = 'none'; kk.classList.remove('up'); void kk.offsetWidth; kk.style.transition = ''; }
+      const pr = $('.hud .progress i'); if (pr) pr.style.width = (success/GOAL*100)+'%';
+      const b = $('.hud b'); if (b) b.textContent = `${success}/${GOAL}`;
+      Sound.play('star');
+      if (success >= GOAL) finish(ctx, mistakes === 0 ? 1 : mistakes <= 2 ? 0.7 : 0.4);
+      else { msg(`Chegaste ao outro lado! Faltam ${GOAL-success}. Espera pelo próximo verde.`); Voice.say(`Muito bem! Faltam ${GOAL-success}.`); }
+    }, 1800);
+  };
+}
+
+/* ---------- Jogo da memória ---------- */
+function gameMemory(ctx){
+  const { L, g } = ctx;
+  const pool = SIGNS.filter(s => s.lvl <= g.pool);
+  const chosen = weightedSigns(pool, Math.min(g.pairs, pool.length));
+  const cards = shuffle(chosen.flatMap(s => [ { sid:s.id, kind:'sign' }, { sid:s.id, kind:'name' } ]));
+  let open = [], moves = 0, found = 0, lock = false;
+  const cols = cards.length <= 8 ? 4 : cards.length <= 12 ? 4 : 4;
+  render(`${hud(L, 0, chosen.length, '<span class="pill" id="mv">👆 0</span>')}
+    <div class="qcard" style="padding:12px"><div class="row" style="margin-bottom:10px"><div class="qtext grow" style="font-size:18px">Encontra cada sinal e o seu nome!</div><button class="sayb" id="say">🔊</button></div>
+    <div class="mem" style="grid-template-columns:repeat(${cols},1fr)">${cards.map((c,k) => `<button class="mcard" data-k="${k}" data-silent="1"><div class="in"><div class="f">❓</div><div class="b">${c.kind==='sign' ? signSVG(c.sid, 64) : esc(SIGN[c.sid].name)}</div></div></button>`).join('')}</div></div>`);
+  bindQuit(L);
+  $('#say').onclick = () => Voice.say('Vira as cartas e encontra cada sinal e o seu nome.');
+  later(() => Voice.say('Jogo da memória! Encontra cada sinal e o seu nome.'), 200);
+  $$('.mcard').forEach(b => b.onclick = () => {
+    const k = +b.dataset.k; if (lock || b.classList.contains('open') || b.classList.contains('done')) return;
+    b.classList.add('open'); Sound.play('flip'); open.push(k);
+    if (open.length === 2){
+      moves++; $('#mv').textContent = '👆 ' + moves; lock = true;
+      const [a, c] = open.map(x => cards[x]); const els = open.map(x => $(`.mcard[data-k="${x}"]`));
+      if (a.sid === c.sid && a.kind !== c.kind){
+        later(() => { els.forEach(e => { e.classList.remove('open'); e.classList.add('done'); }); Sound.play('correct'); stat(a.sid, true);
+          found++; Voice.say(SIGN[a.sid].name); const pr = $('.hud .progress i'); pr.style.width = (found/chosen.length*100)+'%'; $('.hud b').textContent = `${found}/${chosen.length}`;
+          open = []; lock = false;
+          if (found === chosen.length) later(() => finish(ctx, moves <= chosen.length + 2 ? 1 : moves <= chosen.length*2 ? 0.7 : 0.4), 900);
+        }, 450);
+      } else {
+        later(() => { Sound.play('wrong'); }, 450);
+        later(() => { els.forEach(e => e.classList.remove('open')); open = []; lock = false; }, 1100);
+      }
+    }
+  });
+}
+
+/* ---------- Constrói o sinal ---------- */
+const SHAPES = [ ['tri','Triângulo'], ['triDown','Triângulo ao contrário'], ['circle','Círculo'], ['oct','Octógono'], ['square','Quadrado'], ['diamond','Losango'] ];
+const LOOKS = ['perigo','temp','proib','proibAzul','sentido','obrig','prior'];
+const lookOf = sch => SCHEMES[sch].look;
+function gameBuild(ctx){
+  const { L, g } = ctx; const targets = shuffle(g.targets).slice(0, 4);
+  let ti = 0, errors = 0, steps = 0;
+  const round = () => {
+    if (ti >= targets.length) return finish(ctx, errors === 0 ? 1 : errors <= Math.ceil(steps*0.25) ? 0.7 : 0.4);
+    const s = SIGN[targets[ti]]; let shape = null, scheme = null;
+    const hasSym = !!s.sym;
+    const stepUI = (n, title, opts, onPick) => {
+      render(`${hud(L, ti, targets.length)}
+        <div class="qcard center">
+          <div class="muted" style="font-weight:800">CONSTRÓI O SINAL</div>
+          <h2 style="margin:4px 0">«${esc(s.name)}»</h2>
+          <div class="steps">${[1,2,3].slice(0, hasSym?3:2).map(k => `<i class="${k<=n?'on':''}"></i>`).join('')}</div>
+          <div class="signbox" id="pv">${shape ? drawShape(shape, scheme || 'blank', null, 110) : '<div style="width:110px;height:110px;border:4px dashed #c3d3dc;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px">❔</div>'}</div>
+          <div class="row" style="justify-content:center"><div class="qtext">${title}</div><button class="sayb" id="say">🔊</button></div>
+          <div class="opts grid g3">${opts.map((o,k) => `<button class="opt vis" data-k="${k}" data-silent="1">${o.html}<span style="font-size:13px">${esc(o.label||'')}</span></button>`).join('')}</div>
+          <div id="fb"></div>
+        </div>`);
+      bindQuit(L);
+      $('#say').onclick = () => Voice.say(`${title} Sinal: ${s.name}.`);
+      later(() => Voice.say(`${title}`), 200);
+      let done = false;
+      $$('.opt').forEach(b => b.onclick = () => {
+        if (done) return; const o = opts[+b.dataset.k]; steps++;
+        if (o.ok){ done = true; b.classList.add('ok','bounce'); Sound.play('correct'); later(() => onPick(o), 650); }
+        else { errors++; b.classList.add('no','shake'); Sound.play('wrong'); setTimeout(() => b.classList.remove('shake'), 400);
+          $('#fb').innerHTML = `<div class="feedback no">💡 ${esc(o.hint || 'Tenta outra vez!')}</div>`; Voice.say(o.hint || 'Tenta outra vez!'); }
+      });
+    };
+    const shapeOpts = shuffle([ SHAPES.find(x => x[0] === s.shape), ...shuffle(SHAPES.filter(x => x[0] !== s.shape)).slice(0,2) ])
+      .map(([k, lab]) => ({ html:drawShape(k, 'blank', null, 70), label:lab, ok:k === s.shape, key:k, hint:`Não é essa forma. Pensa: os sinais de ${CATS[s.cat].name.toLowerCase()} têm que forma?` }));
+    stepUI(1, 'Que forma tem este sinal?', shapeOpts, o => {
+      shape = o.key;
+      const correctLook = lookOf(s.scheme);
+      const cand = shuffle(LOOKS.filter(x => lookOf(x) !== correctLook)).filter((x,i,a) => a.findIndex(y => lookOf(y) === lookOf(x)) === i).slice(0, 2);
+      const schemeOpts = shuffle([ s.scheme, ...cand ]).map(k => ({ html:drawShape(shape, k, null, 70), label:lookOf(k), ok:lookOf(k) === correctLook, key:k, hint:'Essas não são as cores certas. Olha bem para os sinais à tua volta!' }));
+      stepUI(2, 'De que cores é?', schemeOpts, o2 => {
+        scheme = s.scheme;
+        const fin = () => { ti++; Sound.play('pop'); stat(s.id, true);
+          const close = modal(`<div class="center"><div class="signbox">${signSVG(s.id, 150)}</div><h2>${esc(s.name)}</h2><p style="font-weight:700">${esc(s.desc)}</p><button class="btn big" id="mc" style="width:100%">Continuar ➜</button></div>`, (m, cl) => { $('#mc', m).onclick = () => { cl(); round(); }; });
+          Voice.say(`Construíste o sinal ${s.name}! ${s.desc}`); };
+        if (!hasSym) return fin();
+        const syms = Object.keys(SYM).filter(k => k !== s.sym && !['h7','stop','barra'].includes(k));
+        const symOpts = shuffle([ s.sym, ...shuffle(syms).slice(0,2) ]).map(k => ({ html:drawShape(shape, scheme, k, 70), label:SYM_NAMES[k], ok:k === s.sym, hint:`Não é esse desenho. O sinal é «${s.name}».` }));
+        stepUI(3, 'Que desenho leva?', symOpts, fin);
+      });
+    });
+  };
+  round();
+}
+
+/* ---------- Desafio relâmpago ---------- */
+function gameFlash(ctx){
+  const { L, g } = ctx; const pool = SIGNS.filter(s => s.lvl <= g.pool);
+  const targets = weightedSigns(pool, Math.min(g.rounds, pool.length));
+  let i = 0, right = 0;
+  const round = () => {
+    if (i >= targets.length) return finish(ctx, right / targets.length);
+    const s = targets[i]; const opts = shuffle([ s, ...shuffle(pool.filter(o => o.id !== s.id)).slice(0, 3) ]);
+    render(`${hud(L, i, targets.length, `<span class="pill">✅ ${right}</span>`)}
+      <div class="qcard">
+        <div class="timer"><i id="tm"></i></div>
+        <div class="qtext center" style="margin:14px 0 4px">⚡ ${esc(s.find)}</div>
+        <div class="opts grid g2">${opts.map((o,k) => `<button class="opt vis" data-k="${k}" data-silent="1">${signSVG(o.id, 92)}</button>`).join('')}</div>
+        <div id="fb"></div>
+      </div>`);
+    bindQuit(L); Voice.say(s.find);
+    const tm = $('#tm'); tm.style.transition = 'none'; tm.style.transform = 'scaleX(1)';
+    requestAnimationFrame(() => requestAnimationFrame(() => { tm.style.transition = `transform ${g.time}s linear`; tm.style.transform = 'scaleX(0)'; }));
+    let done = false; const t0 = Date.now();
+    const tickT = every(() => { const left = g.time - (Date.now()-t0)/1000; if (!done && left < 3.2 && left > 0) Sound.play('tick'); }, 1000);
+    const end = (ok, b) => {
+      if (done) return; done = true; clearInterval(tickT); tm.style.transition = 'none';
+      $$('.opt').forEach((x,k) => { if (opts[k].id === s.id) x.classList.add('ok'); else if (x !== b) x.classList.add('dim'); });
+      stat(s.id, ok);
+      if (ok){ right++; Sound.play('coin'); } else { b && b.classList.add('no'); Sound.play('wrong'); $('#fb').innerHTML = `<div class="feedback no">💡 Era este: ${esc(s.name)}</div>`; Voice.say(`Era o sinal ${s.name}.`); }
+      later(() => { i++; round(); }, ok ? 800 : 2200);
+    };
+    later(() => end(false, null), g.time * 1000);
+    $$('.opt').forEach(b => b.onclick = () => end(opts[+b.dataset.k].id === s.id, b));
+  };
+  render(`${hud(L,0,targets.length)}<div class="qcard center"><div style="font-size:90px" class="bounce">⚡</div><h2>Prepara-te!</h2><p class="muted" style="font-weight:700">Encontra o sinal certo antes do tempo acabar.</p></div>`);
+  bindQuit(L);
+  // re-adicionar timers após render (render limpa os timers)
+  later(() => Voice.say('Desafio relâmpago! Encontra o sinal antes do tempo acabar.'), 100);
+  later(round, 2000);
+}
+
+/* ---------- Fim de jogo: estrelas, moedas, cromos ---------- */
+function finish(ctx, ratio){
+  const { L, g } = ctx; const p = P();
+  const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1;
+  const wasDone = levelDone(p, L); const nextL = LEVELS[L.n]; const nextWasOpen = nextL ? levelUnlocked(p, nextL) : true; const prev = gameStars(p, g.id);
+  p.progress[g.id] = Math.max(prev, stars);
+  const coins = stars * 5; p.coins += coins; p.plays++;
+  let newSticker = null;
+  if (stars >= 2){ const free = STICKERS.filter(s => !p.stickers.includes(s[0])); if (free.length){ newSticker = pick(free); p.stickers.push(newSticker[0]); } }
+  const levelNowDone = !wasDone && levelDone(p, L);
+  if (levelNowDone && !p.diplomas.includes(L.n)) p.diplomas.push(L.n);
+  save();
+  const msgs = { 3:'Fantástico! És um craque da estrada!', 2:'Muito bem! Estás quase a ser um mestre!', 1:'Bom trabalho! Treina outra vez para ganhar mais estrelas!' };
+  render(`<div class="qcard center" style="margin-top:20px">
+      <div style="font-size:70px">${stars===3?'🏆':stars===2?'🎉':'👍'}</div>
+      <h1>${msgs[stars]}</h1>
+      <div class="bigstars">${[1,2,3].map(k => `<span class="${k<=stars?'on':''}" style="animation-delay:${k*.35}s">★</span>`).join('')}</div>
+      <p style="font-size:20px;font-weight:800">🪙 +${coins} moedas</p>
+      ${newSticker ? `<div class="card" style="background:var(--teal-l);margin:10px 0"><div class="muted" style="font-weight:800">NOVO CROMO!</div><div class="reveal">${newSticker[0]}</div><b>${newSticker[1]}</b></div>` : ''}
+      <div class="grid g2" style="margin-top:14px"><button class="btn ghost big" id="again">🔁 Outra vez</button><button class="btn big" id="cont">Continuar ➜</button></div>
+    </div>`);
+  [1,2,3].forEach(k => { if (k <= stars) later(() => Sound.play('star'), k*350); });
+  later(() => Sound.play('coin'), 1300);
+  if (newSticker) later(() => Sound.play('pop'), 1700);
+  if (stars === 3){ later(confetti, 400); later(() => Sound.play('win'), 1900); }
+  later(() => Voice.say(msgs[stars] + (newSticker ? ` Ganhaste o cromo ${newSticker[1]}!` : '')), 600);
+  $('#again').onclick = () => startGame(L, g);
+  $('#cont').onclick = () => { if (levelNowDone) showDiploma(L, true, !nextWasOpen); else screenLevel(L); };
+}
+function showDiploma(L, fresh, newUnlock){
+  const p = P(); screenLevel(L);
+  if (fresh){ Sound.play('levelUp'); confetti(); later(() => Sound.play('win'), 900); }
+  const next = LEVELS[L.n];
+  modal(`<div class="diploma">
+      <div class="seal">🎓</div>
+      <div class="muted" style="font-weight:800;letter-spacing:1px">DIPLOMA</div>
+      <h1 style="color:var(--teal)">${L.diploma}</h1>
+      <p style="font-size:18px">Atribuído a</p>
+      <div class="row" style="justify-content:center">${avatarHTML(p)}<h2 style="margin:0">${esc(p.name)}</h2></div>
+      <p style="font-weight:700">por completar o nível <b>${L.name}</b> do MiniCondutores.</p>
+      <div class="stars" style="font-size:26px">★ ${levelStars(p,L)}</div>
+      <p class="muted" style="font-size:13px">${new Date().toLocaleDateString('pt-PT')}</p>
+    </div>
+    ${newUnlock && next ? `<p class="center" style="font-weight:800">🔓 Desbloqueaste: ${next.icon} ${next.name}!</p>` : ''}
+    <button class="btn big" id="dok" style="width:100%;margin-top:10px">Fixe! 🎉</button>`, (m, cl) => { $('#dok', m).onclick = cl; });
+  Voice.say(`Parabéns, ${p.name}! Ganhaste o diploma ${L.diploma}!` + (newUnlock && next ? ` Desbloqueaste o nível ${next.name}.` : ''));
+}
+
+/* =========================================================
+   Biblioteca de sinais
+   ========================================================= */
+let libCat = 'luminosa';
+function screenLibrary(){
+  const p = P(); if (!p) return screenProfiles(); currentTab = 'lib';
+  const list = SIGNS.filter(s => s.cat === libCat);
+  render(`${topBar()}
+    <h2>📚 Biblioteca de sinais</h2>
+    <p class="muted" style="margin-top:0;font-weight:700">Toca num sinal para o ouvir e aprender.</p>
+    <div class="tabs">${Object.entries(CATS).map(([k,c]) => `<button class="tab ${k===libCat?'on':''}" data-c="${k}">${c.icon} ${c.name}</button>`).join('')}</div>
+    <div class="grid g3">${list.map(s => `<button class="libitem" data-s="${s.id}">${signSVG(s.id, 76)}<span>${esc(s.name)}</span></button>`).join('')}</div>`, { nav:true });
+  bindTop();
+  $$('[data-c]').forEach(b => b.onclick = () => { libCat = b.dataset.c; screenLibrary(); });
+  $$('[data-s]').forEach(b => b.onclick = () => {
+    const s = SIGN[b.dataset.s];
+    modal(`<div class="center"><div class="signbox">${signSVG(s.id, 170)}</div>
+      <div class="muted" style="font-weight:800">${CATS[s.cat].icon} ${CATS[s.cat].name.toUpperCase()}</div>
+      <h2>${esc(s.name)}</h2><p style="font-size:18px;font-weight:700">${esc(s.desc)}</p>
+      <div class="grid g2"><button class="btn sun" id="ls">🔊 Ouvir</button><button class="btn" id="lc">OK</button></div></div>`,
+      (m, cl) => { $('#ls', m).onclick = () => Voice.say(`${s.name}. ${s.desc}`); $('#lc', m).onclick = cl; });
+    Sound.play('pop'); Voice.say(`${s.name}. ${s.desc}`);
+  });
+}
+
+/* =========================================================
+   Cromos e Garagem
+   ========================================================= */
+function screenStickers(){
+  const p = P(); if (!p) return screenProfiles(); currentTab = 'stickers';
+  render(`${topBar()}
+    <h2>⭐ Caderneta de cromos</h2>
+    <div class="row"><div class="progress grow"><i style="width:${Math.round(p.stickers.length/STICKERS.length*100)}%"></i></div><b>${p.stickers.length}/${STICKERS.length}</b></div>
+    <div class="card row" style="margin:14px 0"><span style="font-size:40px">🎁</span><div class="grow"><b>Saqueta surpresa</b><div class="muted" style="font-size:14px;font-weight:700">Ganha cromos com 2 ou 3 estrelas, ou compra uma saqueta.</div></div><button class="btn sun small" id="buy" ${p.coins<30||p.stickers.length>=STICKERS.length?'disabled':''}>🪙 30</button></div>
+    <div class="grid g4">${STICKERS.map(([e,n]) => { const has = p.stickers.includes(e); return `<button class="sticker ${has?'':'locked'}" data-e="${e}" data-n="${esc(n)}" data-silent="1"><span>${e}</span><small>${has?esc(n):'?'}</small></button>`; }).join('')}</div>`, { nav:true });
+  bindTop();
+  $('#buy').onclick = () => {
+    const free = STICKERS.filter(s => !p.stickers.includes(s[0])); if (!free.length || p.coins < 30) return;
+    const s = pick(free); p.coins -= 30; p.stickers.push(s[0]); save();
+    Sound.play('coin'); later(() => Sound.play('pop'), 300);
+    modal(`<div class="center"><div class="muted" style="font-weight:800">SAIU-TE…</div><div class="reveal">${s[0]}</div><h2>${s[1]}</h2><button class="btn big" id="sc" style="width:100%">Colar na caderneta</button></div>`, (m, cl) => { $('#sc', m).onclick = () => { cl(); screenStickers(); const el = $(`.sticker[data-e="${s[0]}"]`); if (el){ el.classList.add('new'); el.scrollIntoView({block:'center'}); } }; });
+    Voice.say(`Saiu-te o cromo ${s[1]}!`);
+  };
+  $$('.sticker').forEach(b => b.onclick = () => { if (b.classList.contains('locked')){ Sound.play('wrong'); return; } Sound.play('pop'); b.classList.remove('new'); void b.offsetWidth; b.classList.add('new'); Voice.say(b.dataset.n); });
+}
+function screenGarage(){
+  const p = P(); if (!p) return screenProfiles(); currentTab = 'garage';
+  render(`${topBar()}
+    <h2>🚗 Garagem</h2>
+    <p class="muted" style="margin-top:0;font-weight:700">Usa as moedas para comprar veículos. O veículo escolhido aparece na tua cidade e no jogo «Conduz pela cidade».</p>
+    <div class="grid g3">${VEHICLES.map(([e,n,c]) => { const has = p.vehicles.includes(e); return `<button class="shop ${p.vehicle===e?'sel':''}" data-v="${e}"><span class="e">${e}</span><b>${n}</b><span class="pill" style="font-size:14px">${has ? (p.vehicle===e ? '✅ A usar' : 'Usar') : '🪙 '+c}</span></button>`; }).join('')}</div>`, { nav:true });
+  bindTop();
+  $$('[data-v]').forEach(b => b.onclick = () => {
+    const [e, n, c] = VEHICLES.find(v => v[0] === b.dataset.v);
+    if (p.vehicles.includes(e)){ p.vehicle = e; save(); Sound.play(e === '🚲' || e === '🛴' ? 'bell' : e === '🚒' || e === '🚑' || e === '🚓' ? 'siren' : 'horn'); screenGarage(); return; }
+    if (p.coins < c){ Sound.play('wrong'); toast(`Precisas de ${c} moedas. Joga mais para ganhar! 🪙`); Voice.say(`Precisas de ${c} moedas.`); return; }
+    p.coins -= c; p.vehicles.push(e); p.vehicle = e; save(); Sound.play('coin'); later(() => Sound.play('engine'), 300); confetti(); Voice.say(`Compraste: ${n}!`); screenGarage();
+  });
+}
+
+/* =========================================================
+   Definições e Painel parental
+   ========================================================= */
+function testSounds(){
+  Sound.unlock();
+  const seq = ['correct','star','coin','horn','bell','engine','pop','win'];
+  seq.forEach((s,k) => setTimeout(() => Sound.play(s), k*650));
+  setTimeout(() => Voice.say('Olá! Os sons estão a funcionar.'), seq.length*650);
+  toast('🔊 A tocar sons de teste…');
+}
+function screenSettings(){
+  const st = S.settings; const voiceOk = 'speechSynthesis' in window;
+  render(`<div class="topbar"><button class="iconbtn" id="back">⬅️</button><h2>⚙️ Definições</h2></div>
+    <div class="card">
+      <div class="switch">🔊 Efeitos sonoros <button class="tog ${st.sound?'on':''}" data-t="sound"></button></div>
+      <div class="switch">🎵 Música de fundo <button class="tog ${st.music?'on':''}" data-t="music"></button></div>
+      <div class="switch">🗣️ Voz (narração) <button class="tog ${st.voice?'on':''}" data-t="voice"></button></div>
+      <div style="padding:12px 0;font-weight:800">🔉 Volume <input type="range" id="vol" min="0" max="1" step="0.05" value="${st.volume}"></div>
+      <button class="btn sun" id="test" style="width:100%">▶️ Testar sons e voz</button>
+      ${!voiceOk ? '<div class="voicewarn">Este navegador não tem voz. Os efeitos sonoros continuam a funcionar.</div>' : (Voice.langFound && /pt[-_]PT/i.test(Voice.langFound) ? `<p class="muted" style="font-size:14px;font-weight:700">Voz encontrada: ${esc(Voice.voice.name)} (${Voice.langFound})</p>` : `<div class="voicewarn">Não foi encontrada uma voz em português de Portugal neste aparelho${Voice.langFound ? ' (a usar ' + esc(Voice.langFound) + ')' : ''}. Podes instalá-la nas definições de voz/texto‑para‑fala do telemóvel.</div>`)}
+      <p class="muted" style="font-size:13px;font-weight:700">No iPhone, se não ouvires nada, verifica se o botão de silêncio está desligado e o volume está alto.</p>
+    </div>
+    <button class="btn ghost" id="sw" style="width:100%;margin-top:14px">👥 Mudar de perfil</button>`);
+  $('#back').onclick = () => P() ? screenHome() : screenProfiles();
+  $('#sw').onclick = screenProfiles;
+  $$('[data-t]').forEach(b => b.onclick = () => {
+    const k = b.dataset.t; st[k] = !st[k]; save(); b.classList.toggle('on', st[k]);
+    if (k === 'music'){ st.music ? (Sound.unlock(), Sound.startMusic()) : Sound.stopMusic(); }
+    if (k === 'voice' && st.voice) Voice.say('Voz ligada!');
+    if (k === 'sound' && st.sound) Sound.play('correct');
+  });
+  $('#vol').oninput = e => Sound.setVolume(+e.target.value);
+  $('#vol').onchange = () => { save(); Sound.play('coin'); };
+  $('#test').onclick = testSounds;
+}
+function screenParentsGate(){
+  const a = 3 + Math.floor(Math.random()*7), b = 4 + Math.floor(Math.random()*6);
+  currentTab = 'parents';
+  render(`${topBar()}<div class="card center" style="margin-top:10px">
+    <div style="font-size:60px">👪</div><h2>Área dos pais</h2><p class="muted" style="font-weight:700">Para entrar, responde: quanto é <b>${a} × ${b}</b>?</p>
+    <input type="text" id="ans" inputmode="numeric" placeholder="Resposta" style="text-align:center">
+    <button class="btn big navy" id="go" style="width:100%;margin-top:12px">Entrar</button></div>`, { nav:true });
+  bindTop();
+  $('#go').onclick = () => { if (+$('#ans').value === a*b) screenParents(); else { Sound.play('wrong'); $('#ans').classList.add('shake'); setTimeout(() => $('#ans').classList.remove('shake'), 400); } };
+}
+function screenParents(){
+  const p = P();
+  const stats = SIGNS.map(s => ({ s, st:p.signStats[s.id] || {ok:0, err:0} })).filter(x => x.st.ok + x.st.err > 0);
+  const hard = stats.filter(x => x.st.err > 0).sort((a,b) => (b.st.err/(b.st.ok+b.st.err)) - (a.st.err/(a.st.ok+a.st.err)) || b.st.err - a.st.err).slice(0,6);
+  const totOk = stats.reduce((a,x)=>a+x.st.ok,0), totErr = stats.reduce((a,x)=>a+x.st.err,0);
+  render(`<div class="topbar"><button class="iconbtn" id="back">⬅️</button><h2>👪 Painel parental</h2></div>
+    <div class="card"><div class="row">${avatarHTML(p,'lg')}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="muted" style="font-weight:700">Idade: ${AGES[p.ageLvl-1][0]} · ${p.plays} jogos · desde ${new Date(p.created).toLocaleDateString('pt-PT')}</div>
+      <div class="row wrap" style="margin-top:6px"><span class="pill">⭐ ${totalStars(p)}</span><span class="pill">🪙 ${p.coins}</span><span class="pill">🃏 ${p.stickers.length}</span><span class="pill">🎓 ${p.diplomas.length}</span></div></div></div></div>
+    <div class="card" style="margin-top:14px"><h3>Progresso por nível</h3>
+      ${LEVELS.map(L => { const st = levelStars(p,L), max = L.games.length*3; return `<div class="bar-row"><span style="width:150px">${L.icon} ${L.name}</span><div class="progress"><i style="width:${st/max*100}%;background:${L.color}"></i></div><span>${st}/${max}</span></div>`; }).join('')}</div>
+    <div class="card" style="margin-top:14px"><h3>Sinais reconhecidos</h3>
+      <p class="muted" style="font-weight:700;margin-top:0">Respostas sobre sinais: ✅ ${totOk} certas · 💡 ${totErr} a rever${totOk+totErr ? ` (${Math.round(totOk/(totOk+totErr)*100)}% de acerto)` : ''}</p>
+      <h3>Sinais a treinar</h3>
+      ${hard.length ? `<div class="grid g3">${hard.map(x => `<div class="libitem">${signSVG(x.s.id,60)}<span>${esc(x.s.name)}</span><span class="muted">${x.st.err} erro(s)</span></div>`).join('')}</div><p class="muted" style="font-size:14px;font-weight:700">O jogo mostra estes sinais mais vezes (aprendizagem adaptativa).</p>` : '<p class="muted" style="font-weight:700">Ainda sem dados suficientes. 👍</p>'}</div>
+    <div class="card" style="margin-top:14px"><h3>Opções</h3>
+      <div class="switch">🔓 Desbloquear todos os níveis <button class="tog ${p.unlockAll?'on':''}" id="ua"></button></div>
+      <div style="padding:10px 0;font-weight:800">🎂 Idade do perfil</div>
+      <div class="grid g3" id="ages">${AGES.map(([t,l]) => `<button class="choice ${p.ageLvl===l?'sel':''}" data-g="${l}" style="font-size:15px;font-weight:800">${t}</button>`).join('')}</div>
+      <div class="grid g2" style="margin-top:14px"><button class="btn ghost small" id="rst">🔄 Recomeçar progresso</button><button class="btn coral small" id="del">🗑️ Apagar perfil</button></div>
+      <p class="muted" style="font-size:13px;font-weight:700">Os perfis ficam guardados neste aparelho e neste navegador.</p></div>
+    <div class="card" style="margin-top:14px;font-size:14px"><h3>Sobre os conteúdos</h3><p class="muted" style="font-weight:600;margin:0">Baseado no Código da Estrada e no Regulamento de Sinalização do Trânsito (RST) em vigor em Portugal, e nas recomendações da ANSR. Os desenhos dos sinais são versões simplificadas para crianças.</p></div>`);
+  $('#back').onclick = screenHome;
+  $('#ua').onclick = e => { p.unlockAll = !p.unlockAll; save(); e.target.classList.toggle('on', p.unlockAll); };
+  $$('#ages .choice').forEach(b => b.onclick = () => { p.ageLvl = +b.dataset.g; save(); $$('#ages .choice').forEach(x => x.classList.toggle('sel', x === b)); });
+  $('#rst').onclick = () => modal(`<h2>Recomeçar o progresso de ${esc(p.name)}?</h2><p>Estrelas, moedas, cromos e diplomas voltam ao início.</p><div class="grid g2"><button class="btn ghost" id="n">Cancelar</button><button class="btn coral" id="y">Recomeçar</button></div>`, (m, cl) => {
+    $('#n', m).onclick = cl; $('#y', m).onclick = () => { Object.assign(p, { coins:10, stickers:[], vehicles:['🚲'], vehicle:'🚲', progress:{}, signStats:{}, diplomas:[], plays:0 }); save(); cl(); screenParents(); toast('Progresso reiniciado'); }; });
+  $('#del').onclick = () => modal(`<h2>Apagar o perfil de ${esc(p.name)}?</h2><p>Esta ação não pode ser desfeita.</p><div class="grid g2"><button class="btn ghost" id="n">Cancelar</button><button class="btn coral" id="y">Apagar</button></div>`, (m, cl) => {
+    $('#n', m).onclick = cl; $('#y', m).onclick = () => { S.profiles = S.profiles.filter(x => x.id !== p.id); S.current = null; save(); cl(); screenProfiles(); }; });
+}
+
+/* ---------- Arranque ---------- */
+window.__MC = { SFX, Sound, Voice, SIGNS, BANKS, LEVELS, S, signSVG };
+if (S.settings.music) { /* música só começa após o primeiro toque */ }
+P() ? screenHome() : screenProfiles();
+</script>
+</body>
+</html>
