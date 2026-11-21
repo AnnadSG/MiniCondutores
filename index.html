@@ -49,7 +49,8 @@ p{line-height:1.45}
 .hero .road:after{content:"";position:absolute;left:0;right:0;top:18px;height:4px;background:repeating-linear-gradient(90deg,#fff 0 26px,transparent 26px 50px);animation:dash 1.2s linear infinite}
 @keyframes dash{to{background-position:-50px 0}}
 .hero .drive{position:absolute;bottom:34px;font-size:40px;animation:drive 9s linear infinite}
-@keyframes drive{from{left:-60px}to{left:110%}}
+@keyframes drive{from{left:110%}to{left:-70px}}
+.hero .drive svg{display:block}
 .hero .cloud{position:absolute;font-size:34px;opacity:.9;animation:float 6s ease-in-out infinite}
 @keyframes float{50%{transform:translateY(-6px)}}
 .grid{display:grid;gap:12px}
@@ -211,8 +212,41 @@ const uid = () => Math.random().toString(36).slice(2,9);
 /* ---------- Armazenamento (perfis) ---------- */
 const Store = {
   key: 'minicondutores_v1', mem: null,
+  lsOk: (() => { try { localStorage.setItem('__mc_t','1'); localStorage.removeItem('__mc_t'); return true; } catch(e){ return false; } })(),
   load(){ try { const r = localStorage.getItem(this.key); if (r) return JSON.parse(r); } catch(e){} return this.mem; },
-  save(d){ this.mem = JSON.parse(JSON.stringify(d)); try { localStorage.setItem(this.key, JSON.stringify(d)); } catch(e){} }
+  save(d){
+    const json = JSON.stringify(d); this.mem = JSON.parse(json);
+    try { localStorage.setItem(this.key, json); } catch(e){}
+    IDB.put(this.key, json);
+  },
+  /* pedir ao navegador para não apagar os dados */
+  persist(){ try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); } catch(e){} },
+  /* código de cópia de segurança (texto) */
+  exportCode(d){ return 'MC1:' + btoa(unescape(encodeURIComponent(JSON.stringify(d)))); },
+  importCode(code){
+    const c = String(code).trim().replace(/\s+/g,'');
+    if (!c.startsWith('MC1:')) throw new Error('codigo');
+    const d = JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));
+    if (!d || !Array.isArray(d.profiles)) throw new Error('codigo');
+    return d;
+  }
+};
+/* cópia extra em IndexedDB (sobrevive melhor do que o localStorage em alguns telemóveis) */
+const IDB = {
+  db: null,
+  open(){
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open('minicondutores', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('kv');
+        r.onsuccess = () => { this.db = r.result; res(this.db); };
+        r.onerror = () => rej(r.error);
+      } catch(e){ rej(e); }
+    });
+  },
+  put(k, v){ this.open().then(db => { try { db.transaction('kv','readwrite').objectStore('kv').put(v, k); } catch(e){} }).catch(()=>{}); },
+  get(k){ return this.open().then(db => new Promise(res => { try { const q = db.transaction('kv','readonly').objectStore('kv').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); } catch(e){ res(null); } })).catch(() => null); }
 };
 const S = Store.load() || { profiles: [], current: null, settings: { sound:true, music:false, voice:true, volume:0.8 } };
 if (!S.settings) S.settings = { sound:true, music:false, voice:true, volume:0.8 };
@@ -325,30 +359,60 @@ const Sound = (() => {
   return { ensure, unlock, play, setVolume, startMusic, stopMusic, get ctx(){ return ctx; }, get master(){ return master; } };
 })();
 
-/* ---------- Voz (narração PT-PT) ---------- */
+/* ---------- Voz (narração PT-PT) ----------
+   Cada frase é um "clip". Se existir uma gravação para essa frase (audio/manifest.json),
+   toca a gravação; senão usa a voz sintética do aparelho. */
+const speechKey = t => String(t).toLowerCase().normalize('NFC')
+  .replace(/<[^>]+>/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'')
+  .replace(/[^0-9a-zà-ÿ]+/g,' ').trim();
+const splitSentences = t => String(t).replace(/<[^>]+>/g,' ').split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(x => speechKey(x));
+const REC = { map:{}, base:'audio/', loaded:false,
+  load(){ if (location.protocol === 'file:') return; try { fetch(this.base + 'manifest.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(m => { if (m && typeof m === 'object'){ this.map = m; this.loaded = true; } }).catch(()=>{}); } catch(e){} },
+  url(text){ const f = this.map[speechKey(text)]; return f ? this.base + f : null; }
+};
+REC.load();
 const Voice = {
-  voice: null, langFound: null,
+  voice: null, langFound: null, token: 0, audio: null,
   pick(){
     if (!('speechSynthesis' in window)) return;
     const vs = speechSynthesis.getVoices();
     this.voice = vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
     this.langFound = this.voice ? this.voice.lang : null;
   },
-  say(text){
-    if (!S.settings.voice || !('speechSynthesis' in window) || !text) return;
-    const clean = String(text).replace(/<[^>]+>/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'').replace(/km\/h/g,'quilómetros por hora').trim();
-    if (!clean) return;
-    try {
-      speechSynthesis.cancel();
-      setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(clean);
-        u.lang = 'pt-PT'; if (this.voice) u.voice = this.voice;
-        u.rate = 0.95; u.pitch = 1.1; u.volume = Math.min(1, S.settings.volume + 0.2);
-        speechSynthesis.speak(u);
-      }, 80);
-    } catch(e){}
+  /* aceita um texto ou uma lista de textos; cada frase é dita em sequência */
+  say(input){
+    if (!S.settings.voice || !input) return;
+    const parts = (Array.isArray(input) ? input : [input]).filter(x => x != null && x !== '').map(String).flatMap(splitSentences);
+    if (!parts.length) return;
+    if (window.__spoken) window.__spoken.push(...parts);
+    this.stop(); const tok = ++this.token;
+    const next = i => {
+      if (tok !== this.token || i >= parts.length) return;
+      const url = REC.url(parts[i]);
+      if (url){
+        const a = new Audio(url); this.audio = a; a.volume = Math.min(1, S.settings.volume + 0.2);
+        a.onended = () => next(i+1); a.onerror = () => this.tts(parts[i], () => next(i+1), tok);
+        a.play().catch(() => this.tts(parts[i], () => next(i+1), tok));
+      } else this.tts(parts[i], () => next(i+1), tok);
+    };
+    setTimeout(() => next(0), 80);
   },
-  stop(){ try { speechSynthesis.cancel(); } catch(e){} }
+  tts(text, done, tok){
+    if (tok !== this.token) return;
+    if (!('speechSynthesis' in window)) return done();
+    const clean = String(text).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'').replace(/km\/h/g,'quilómetros por hora').replace(/[«»]/g,'').trim();
+    if (!clean) return done();
+    try {
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang = 'pt-PT'; if (this.voice) u.voice = this.voice;
+      u.rate = 0.95; u.pitch = 1.1; u.volume = Math.min(1, S.settings.volume + 0.2);
+      let fired = false; const fin = () => { if (!fired){ fired = true; done(); } };
+      u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 900 + clean.length * 110); /* segurança: alguns navegadores não disparam onend */
+      speechSynthesis.speak(u);
+    } catch(e){ done(); }
+  },
+  stop(){ this.token++; try { speechSynthesis.cancel(); } catch(e){} if (this.audio){ try { this.audio.pause(); } catch(e){} this.audio = null; } }
 };
 if ('speechSynthesis' in window){ Voice.pick(); speechSynthesis.onvoiceschanged = () => Voice.pick(); }
 
@@ -586,7 +650,7 @@ const LEVELS = [
   { n:1, name:'Pequeno Peão', age:'3–4 anos', icon:'🚦', color:'#2fb67c', diploma:'Especialista em Semáforos', intro:'Vamos aprender os semáforos, as cores e as passadeiras!',
     games:[ { id:'l1-cross', type:'cross', title:'Semáforo mágico', icon:'🚦', desc:'Atravessa quando o boneco ficar verde' },
             { id:'l1-quiz', type:'quiz', bank:'cores', n:8, title:'Cores e passadeiras', icon:'🎨', desc:'Responde com as cores certas' },
-            { id:'l1-mem', type:'memory', pool:1, pairs:4, title:'Jogo da memória', icon:'🃏', desc:'Encontra os pares' } ] },
+            { id:'l1-mem', type:'memory', pool:1, pairs:4, same:true, title:'Jogo da memória', icon:'🃏', desc:'Encontra os pares' } ] },
   { n:2, name:'Explorador', age:'5–6 anos', icon:'🧭', color:'#f2a33a', diploma:'Peão Responsável', intro:'O STOP, os sinais de perigo e as regras dos peões!',
     games:[ { id:'l2-signs', type:'signquiz', pool:2, cats:['cedencia','perigo','indicacao','marcas','luminosa'], n:8, title:'Qual é o sinal?', icon:'❓', desc:'Descobre o que quer dizer cada sinal' },
             { id:'l2-det', type:'detective', bank:'peoes', title:'Detetive da estrada', icon:'🔍', desc:'Certo ou errado?' },
@@ -666,6 +730,12 @@ function modal(html, onMount){
   if (onMount) onMount(m, close);
   return close;
 }
+/* emojis de bicicleta e trotinete mudam de direção conforme o telemóvel: desenhamo-los virados para a esquerda */
+function vehHTML(e){
+  if (e === '🚲') return `<svg viewBox="0 0 100 100" width="48" height="48" style="transform:scaleX(-1)"><g fill="none" stroke="#e2483d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="66" r="17" stroke="#17324d"/><circle cx="78" cy="66" r="17" stroke="#17324d"/><path d="M24 66 L44 40 L68 40 L78 66 M24 66 L52 66 L44 40 M52 66 L68 40 M68 40 L65 28 L75 28 M37 34 L51 34"/></g></svg>`;
+  if (e === '🛴') return `<svg viewBox="0 0 100 100" width="48" height="48"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 26 L30 26 M26 26 L32 70 L80 70" stroke="#2d8cd6" stroke-width="7"/><circle cx="30" cy="76" r="9" stroke="#17324d" stroke-width="6"/><circle cx="80" cy="76" r="9" stroke="#17324d" stroke-width="6"/></g></svg>`;
+  return e;
+}
 const avatarHTML = (p, cls='') => `<span class="avatar ${cls}" style="background:${p.color}">${p.avatar}</span>`;
 const starsHTML = (n, max=3) => `<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(Math.max(0,max-n))}</span></span>`;
 
@@ -678,7 +748,7 @@ function screenProfiles(){
       <span class="cloud" style="left:8%;top:12px">☁️</span><span class="cloud" style="right:12%;top:28px;animation-delay:1s">☁️</span>
       <div class="brand">Mini<span>Condutores</span></div>
       <p style="margin:4px 0 0;font-weight:700;max-width:70%">Regras e sinais da estrada de Portugal 🇵🇹</p>
-      <div class="road"></div><div class="drive">🚌</div><div class="drive" style="animation-delay:-4s">🚲</div>
+      <div class="road"></div><div class="drive">${vehHTML('🚌')}</div><div class="drive" style="animation-delay:-4s">${vehHTML('🚲')}</div>
     </div>
     <h2 style="margin-top:18px">Quem vai jogar?</h2>
     <div class="grid g3" style="margin-top:10px">
@@ -687,10 +757,30 @@ function screenProfiles(){
     </div>
     <div class="card" style="margin-top:18px">
       <div class="row"><span style="font-size:28px">🔊</span><div class="grow"><b>Liga o som!</b><div class="muted" style="font-size:14px">O jogo tem efeitos sonoros e uma voz que lê as perguntas.</div></div><button class="btn small sun" id="testS">Testar</button></div>
-    </div>`);
-  $$('[data-p]').forEach(b => b.onclick = () => { S.current = b.dataset.p; save(); currentTab='city'; Sound.play('pop'); const p=P(); Voice.say(`Olá, ${p.name}!`); screenHome(); });
+    </div>
+    ${Store.lsOk ? '' : `<div class="voicewarn" style="margin-top:14px;font-size:15px">⚠️ Este navegador não está a deixar guardar o progresso (modo privado ou link aberto dentro de outra app). Abre o jogo no Chrome ou no Safari normal, ou usa um código de cópia.</div>`}
+    <button class="btn ghost small" id="restore" style="width:100%;margin-top:14px">📥 Tenho um código de cópia</button>`);
+  $$('[data-p]').forEach(b => b.onclick = () => { S.current = b.dataset.p; save(); currentTab='city'; Sound.play('pop'); const p=P(); Voice.say(['Olá!', p.name]); screenHome(); });
   $('#addP').onclick = () => screenNewProfile();
   $('#testS').onclick = testSounds;
+  $('#restore').onclick = restoreDialog;
+}
+function restoreDialog(){
+  modal(`<h2>📥 Restaurar progresso</h2><p class="muted" style="font-weight:700">Cola aqui o código de cópia (começa por <b>MC1:</b>). Os perfis do código substituem os deste aparelho.</p>
+    <textarea id="rc" rows="5" style="width:100%;font:inherit;font-size:14px;border-radius:14px;border:3px solid #cfe0ea;padding:10px" placeholder="MC1:..."></textarea>
+    <div id="rmsg"></div>
+    <div class="grid g2" style="margin-top:10px"><button class="btn ghost" id="rn">Cancelar</button><button class="btn" id="ry">Restaurar</button></div>`, (m, cl) => {
+    $('#rn', m).onclick = cl;
+    $('#ry', m).onclick = () => {
+      try {
+        const d = Store.importCode($('#rc', m).value);
+        Object.keys(S).forEach(k => delete S[k]); Object.assign(S, d);
+        if (!S.settings) S.settings = { sound:true, music:false, voice:true, volume:0.8 };
+        save(); Store.persist(); cl(); Sound.play('levelUp'); toast('✅ Progresso restaurado!');
+        P() ? screenHome() : screenProfiles();
+      } catch(e){ Sound.play('wrong'); $('#rmsg', m).innerHTML = '<div class="voicewarn">Este código não é válido. Confirma que copiaste o código todo.</div>'; }
+    };
+  });
 }
 function screenNewProfile(){
   let av = pick(AVATARS), col = pick(AV_COLORS), age = null;
@@ -723,8 +813,8 @@ function screenNewProfile(){
     if (!name){ $('#nm').classList.add('shake'); setTimeout(()=>$('#nm').classList.remove('shake'),400); Sound.play('wrong'); Voice.say('Escreve o teu nome.'); return; }
     if (!age){ $('#ages').classList.add('shake'); setTimeout(()=>$('#ages').classList.remove('shake'),400); Sound.play('wrong'); Voice.say('Escolhe a idade.'); return; }
     const p = newProfile(name, av, col, age);
-    S.profiles.push(p); S.current = p.id; save();
-    Sound.play('levelUp'); confetti(); Voice.say(`Bem-vindo, ${name}! Vamos aprender as regras da estrada.`);
+    S.profiles.push(p); S.current = p.id; save(); Store.persist();
+    Sound.play('levelUp'); confetti(); Voice.say(['Bem-vindo!', name, 'Vamos aprender as regras da estrada.']);
     currentTab = 'city'; screenHome();
   };
 }
@@ -750,7 +840,7 @@ function screenHome(){
       <span class="cloud" style="right:10%;top:10px">☁️</span>
       <h2 style="margin:0">A tua cidade</h2>
       <p style="margin:2px 0;font-weight:700;max-width:75%">Completa os desafios de cada bairro para desbloquear o seguinte!</p>
-      <div class="road"></div><div class="drive">${p.vehicle}</div>
+      <div class="road"></div><div class="drive">${vehHTML(p.vehicle)}</div>
     </div>
     <div class="path" style="margin-top:16px">
       ${LEVELS.map(L => { const un = levelUnlocked(p, L), st = levelStars(p, L), max = L.games.length*3, done = levelDone(p,L);
@@ -764,7 +854,7 @@ function screenHome(){
   bindTop();
   $$('[data-l]').forEach(b => b.onclick = () => {
     const L = LEVELS[+b.dataset.l - 1];
-    if (!levelUnlocked(p, L)){ Sound.play('wrong'); const prev = LEVELS[L.n-2]; toast(`🔒 Completa primeiro todos os desafios do nível «${prev.name}»`); Voice.say(`Primeiro completa o nível ${prev.name}.`); return; }
+    if (!levelUnlocked(p, L)){ Sound.play('wrong'); const prev = LEVELS[L.n-2]; toast(`🔒 Completa primeiro todos os desafios do nível «${prev.name}»`); Voice.say(['Primeiro completa o nível:', prev.name]); return; }
     screenLevel(L);
   });
 }
@@ -781,10 +871,10 @@ function screenLevel(L){
     </div>
     ${levelDone(p,L) ? `<button class="btn sun big" id="dip" style="width:100%;margin-top:18px">🎓 Ver diploma</button>` : ''}`);
   $('#back').onclick = screenHome;
-  $('#say').onclick = () => Voice.say(`Nível ${L.n}, ${L.name}. ${L.intro}`);
+  $('#say').onclick = () => Voice.say([`Nível ${L.n}.`, L.name, L.intro]);
   if ($('#dip')) $('#dip').onclick = () => showDiploma(L);
   $$('[data-g]').forEach(b => b.onclick = () => startGame(L, L.games.find(g => g.id === b.dataset.g)));
-  later(() => Voice.say(`${L.name}. ${L.intro}`), 300);
+  later(() => Voice.say([L.name, L.intro]), 300);
 }
 
 /* =========================================================
@@ -826,9 +916,9 @@ function signQuestions(pool, n){
   return chosen.map((s, i) => {
     const others = shuffle(pool.filter(o => o.id !== s.id)).slice(0, 2);
     if (i % 2 === 0){
-      return { q:'O que quer dizer este sinal?', visual:`<div class="signbox">${signSVG(s.id,130)}</div>`, opts:shuffle([s, ...others].map(o => ({ html:esc(o.find), text:o.find, ok:o.id===s.id }))), exp:`${s.name}: ${s.desc}`, signId:s.id };
+      return { q:'O que quer dizer este sinal?', visual:`<div class="signbox">${signSVG(s.id,130)}</div>`, opts:shuffle([s, ...others].map(o => ({ html:esc(o.find), text:o.find, ok:o.id===s.id }))), exp:`${s.name}. ${s.desc}`, signId:s.id };
     }
-    return { q:`Qual é o sinal: «${s.find}»?`, visual:'', vis:true, opts:shuffle([s, ...others].map(o => ({ html:signSVG(o.id, 84), text:'', ok:o.id===s.id }))), exp:`${s.name}: ${s.desc}`, signId:s.id, grid:true };
+    return { q:`Qual é o sinal: «${s.find}»?`, say:['Qual é o sinal?', s.find], visual:'', vis:true, opts:shuffle([s, ...others].map(o => ({ html:signSVG(o.id, 84), text:'', ok:o.id===s.id }))), exp:`${s.name}. ${s.desc}`, signId:s.id, grid:true };
   });
 }
 function detectiveQs(bank){
@@ -861,7 +951,7 @@ function gameQuiz(ctx, qs, mode={}){
         <div id="fb"></div>
       </div>`);
     bindQuit(L);
-    const speakQ = () => Voice.say((q.pre ? q.pre + ' ' : '') + q.q + (q.vis ? '' : ' ' + q.opts.map(o => o.text).filter(Boolean).join('? Ou ') + '?'));
+    const speakQ = () => Voice.say([q.pre, ...(q.say || [q.q]), ...(q.vis ? [] : q.opts.map(o => o.text).filter(Boolean))]);
     $('#say').onclick = speakQ;
     if (mode.road){ Sound.play(mode.road === '🚲' ? 'bell' : 'engine'); later(speakQ, 900); } else later(speakQ, 250);
     let answered = false;
@@ -874,8 +964,9 @@ function gameQuiz(ctx, qs, mode={}){
       if (q.signId) stat(q.signId, o.ok);
       const praise = pick(['Muito bem!','Boa!','Fantástico!','Isso mesmo!','Excelente!']);
       const fbtext = o.ok ? `${praise} ${q.exp}` : `Quase! ${q.exp}`;
+      const fbsay = o.ok ? [praise, q.exp] : ['Quase!', q.exp];
       $('#fb').innerHTML = `<div class="feedback ${o.ok?'ok':'no'}">${o.ok?'✅':'💡'} ${esc(fbtext)}</div><button class="btn big" id="next" style="width:100%;margin-top:12px">Continuar ➜</button>`;
-      Voice.say(fbtext);
+      Voice.say(fbsay);
       if (mode.road && o.ok){ later(() => { const v = $('#veh'); if (v){ v.classList.add('go'); Sound.play(mode.road === '🚲' ? 'bell' : 'engine'); } }, 300); }
       if (mode.road && !o.ok){ $('#rs') && $('#rs').classList.add('stop'); Sound.play('horn'); }
       $('#next').onclick = () => { i++; show(); };
@@ -944,7 +1035,7 @@ function gameCross(ctx){
       const b = $('.hud b'); if (b) b.textContent = `${success}/${GOAL}`;
       Sound.play('star');
       if (success >= GOAL) finish(ctx, mistakes === 0 ? 1 : mistakes <= 2 ? 0.7 : 0.4);
-      else { msg(`Chegaste ao outro lado! Faltam ${GOAL-success}. Espera pelo próximo verde.`); Voice.say(`Muito bem! Faltam ${GOAL-success}.`); }
+      else { msg(`Chegaste ao outro lado! Faltam ${GOAL-success}. Espera pelo próximo verde.`); Voice.say(['Muito bem!', GOAL-success === 1 ? 'Falta só um.' : `Faltam ${GOAL-success}.`]); }
     }, 1800);
   };
 }
@@ -954,30 +1045,39 @@ function gameMemory(ctx){
   const { L, g } = ctx;
   const pool = SIGNS.filter(s => s.lvl <= g.pool);
   const chosen = weightedSigns(pool, Math.min(g.pairs, pool.length));
-  const cards = shuffle(chosen.flatMap(s => [ { sid:s.id, kind:'sign' }, { sid:s.id, kind:'name' } ]));
+  /* nível 1 (3–4 anos): pares de sinais iguais; restantes: sinal + nome */
+  const cards = shuffle(chosen.flatMap(s => g.same ? [ { sid:s.id, kind:'sign' }, { sid:s.id, kind:'sign' } ] : [ { sid:s.id, kind:'sign' }, { sid:s.id, kind:'name' } ]));
   let open = [], moves = 0, found = 0, lock = false;
-  const cols = cards.length <= 8 ? 4 : cards.length <= 12 ? 4 : 4;
+  const intro = g.same ? 'Jogo da memória! Vira as cartas e encontra os sinais iguais.' : 'Jogo da memória! Vira as cartas e junta cada sinal ao seu nome. Eu leio os nomes para ti.';
   render(`${hud(L, 0, chosen.length, '<span class="pill" id="mv">👆 0</span>')}
-    <div class="qcard" style="padding:12px"><div class="row" style="margin-bottom:10px"><div class="qtext grow" style="font-size:18px">Encontra cada sinal e o seu nome!</div><button class="sayb" id="say">🔊</button></div>
-    <div class="mem" style="grid-template-columns:repeat(${cols},1fr)">${cards.map((c,k) => `<button class="mcard" data-k="${k}" data-silent="1"><div class="in"><div class="f">❓</div><div class="b">${c.kind==='sign' ? signSVG(c.sid, 64) : esc(SIGN[c.sid].name)}</div></div></button>`).join('')}</div></div>`);
+    <div class="qcard" style="padding:12px"><div class="row" style="margin-bottom:10px"><div class="qtext grow" style="font-size:18px">${g.same ? 'Encontra os sinais iguais!' : 'Junta cada sinal ao seu nome!'}</div><button class="sayb" id="say">🔊</button></div>
+    <div class="mem" style="grid-template-columns:repeat(4,1fr)">${cards.map((c,k) => `<button class="mcard" data-k="${k}" data-silent="1"><div class="in"><div class="f">❓</div><div class="b">${c.kind==='sign' ? signSVG(c.sid, 64) : `<span><span style="font-size:22px;display:block">🔊</span>${esc(SIGN[c.sid].name)}</span>`}</div></div></button>`).join('')}</div></div>`);
   bindQuit(L);
-  $('#say').onclick = () => Voice.say('Vira as cartas e encontra cada sinal e o seu nome.');
-  later(() => Voice.say('Jogo da memória! Encontra cada sinal e o seu nome.'), 200);
+  $('#say').onclick = () => Voice.say(intro);
+  later(() => Voice.say(intro), 200);
   $$('.mcard').forEach(b => b.onclick = () => {
-    const k = +b.dataset.k; if (lock || b.classList.contains('open') || b.classList.contains('done')) return;
+    const k = +b.dataset.k, card = cards[k];
+    /* carta já descoberta: toca para ouvir outra vez */
+    if (b.classList.contains('done')){ Voice.say(SIGN[card.sid].name); return; }
+    if (lock || b.classList.contains('open')) return;
     b.classList.add('open'); Sound.play('flip'); open.push(k);
+    /* a voz lê sempre o que está na carta (as crianças pequenas ainda não leem) */
+    Voice.say(SIGN[card.sid].name);
     if (open.length === 2){
       moves++; $('#mv').textContent = '👆 ' + moves; lock = true;
       const [a, c] = open.map(x => cards[x]); const els = open.map(x => $(`.mcard[data-k="${x}"]`));
-      if (a.sid === c.sid && a.kind !== c.kind){
+      const match = a.sid === c.sid && (g.same || a.kind !== c.kind);
+      if (match){
         later(() => { els.forEach(e => { e.classList.remove('open'); e.classList.add('done'); }); Sound.play('correct'); stat(a.sid, true);
-          found++; Voice.say(SIGN[a.sid].name); const pr = $('.hud .progress i'); pr.style.width = (found/chosen.length*100)+'%'; $('.hud b').textContent = `${found}/${chosen.length}`;
+          found++; Voice.say([pick(['Boa!','Muito bem!','Isso!']), SIGN[a.sid].name]);
+          const pr = $('.hud .progress i'); pr.style.width = (found/chosen.length*100)+'%'; $('.hud b').textContent = `${found}/${chosen.length}`;
           open = []; lock = false;
-          if (found === chosen.length) later(() => finish(ctx, moves <= chosen.length + 2 ? 1 : moves <= chosen.length*2 ? 0.7 : 0.4), 900);
-        }, 450);
+          /* estrelas: 3 até 2 jogadas por par, 2 até 3 jogadas por par */
+          if (found === chosen.length) later(() => finish(ctx, moves <= chosen.length*2 ? 1 : moves <= chosen.length*3 ? 0.7 : 0.4), 1400);
+        }, 700);
       } else {
-        later(() => { Sound.play('wrong'); }, 450);
-        later(() => { els.forEach(e => e.classList.remove('open')); open = []; lock = false; }, 1100);
+        later(() => { Sound.play('wrong'); }, 900);
+        later(() => { els.forEach(e => e.classList.remove('open')); open = []; lock = false; }, 1800);
       }
     }
   });
@@ -1006,7 +1106,7 @@ function gameBuild(ctx){
           <div id="fb"></div>
         </div>`);
       bindQuit(L);
-      $('#say').onclick = () => Voice.say(`${title} Sinal: ${s.name}.`);
+      $('#say').onclick = () => Voice.say([title, 'O sinal é:', s.name]);
       later(() => Voice.say(`${title}`), 200);
       let done = false;
       $$('.opt').forEach(b => b.onclick = () => {
@@ -1017,7 +1117,7 @@ function gameBuild(ctx){
       });
     };
     const shapeOpts = shuffle([ SHAPES.find(x => x[0] === s.shape), ...shuffle(SHAPES.filter(x => x[0] !== s.shape)).slice(0,2) ])
-      .map(([k, lab]) => ({ html:drawShape(k, 'blank', null, 70), label:lab, ok:k === s.shape, key:k, hint:`Não é essa forma. Pensa: os sinais de ${CATS[s.cat].name.toLowerCase()} têm que forma?` }));
+      .map(([k, lab]) => ({ html:drawShape(k, 'blank', null, 70), label:lab, ok:k === s.shape, key:k, hint:'Não é essa forma. Olha bem para o sinal e tenta outra vez!' }));
     stepUI(1, 'Que forma tem este sinal?', shapeOpts, o => {
       shape = o.key;
       const correctLook = lookOf(s.scheme);
@@ -1027,10 +1127,10 @@ function gameBuild(ctx){
         scheme = s.scheme;
         const fin = () => { ti++; Sound.play('pop'); stat(s.id, true);
           const close = modal(`<div class="center"><div class="signbox">${signSVG(s.id, 150)}</div><h2>${esc(s.name)}</h2><p style="font-weight:700">${esc(s.desc)}</p><button class="btn big" id="mc" style="width:100%">Continuar ➜</button></div>`, (m, cl) => { $('#mc', m).onclick = () => { cl(); round(); }; });
-          Voice.say(`Construíste o sinal ${s.name}! ${s.desc}`); };
+          Voice.say(['Construíste o sinal!', s.name, s.desc]); };
         if (!hasSym) return fin();
         const syms = Object.keys(SYM).filter(k => k !== s.sym && !['h7','stop','barra'].includes(k));
-        const symOpts = shuffle([ s.sym, ...shuffle(syms).slice(0,2) ]).map(k => ({ html:drawShape(shape, scheme, k, 70), label:SYM_NAMES[k], ok:k === s.sym, hint:`Não é esse desenho. O sinal é «${s.name}».` }));
+        const symOpts = shuffle([ s.sym, ...shuffle(syms).slice(0,2) ]).map(k => ({ html:drawShape(shape, scheme, k, 70), label:SYM_NAMES[k], ok:k === s.sym, hint:'Não é esse desenho. Tenta outra vez!' }));
         stepUI(3, 'Que desenho leva?', symOpts, fin);
       });
     });
@@ -1062,7 +1162,7 @@ function gameFlash(ctx){
       if (done) return; done = true; clearInterval(tickT); tm.style.transition = 'none';
       $$('.opt').forEach((x,k) => { if (opts[k].id === s.id) x.classList.add('ok'); else if (x !== b) x.classList.add('dim'); });
       stat(s.id, ok);
-      if (ok){ right++; Sound.play('coin'); } else { b && b.classList.add('no'); Sound.play('wrong'); $('#fb').innerHTML = `<div class="feedback no">💡 Era este: ${esc(s.name)}</div>`; Voice.say(`Era o sinal ${s.name}.`); }
+      if (ok){ right++; Sound.play('coin'); } else { b && b.classList.add('no'); Sound.play('wrong'); $('#fb').innerHTML = `<div class="feedback no">💡 Era este: ${esc(s.name)}</div>`; Voice.say(['Era este sinal:', s.name]); }
       later(() => { i++; round(); }, ok ? 800 : 2200);
     };
     later(() => end(false, null), g.time * 1000);
@@ -1100,7 +1200,7 @@ function finish(ctx, ratio){
   later(() => Sound.play('coin'), 1300);
   if (newSticker) later(() => Sound.play('pop'), 1700);
   if (stars === 3){ later(confetti, 400); later(() => Sound.play('win'), 1900); }
-  later(() => Voice.say(msgs[stars] + (newSticker ? ` Ganhaste o cromo ${newSticker[1]}!` : '')), 600);
+  later(() => Voice.say([msgs[stars], ...(newSticker ? ['Ganhaste o cromo:', newSticker[1]] : [])]), 600);
   $('#again').onclick = () => startGame(L, g);
   $('#cont').onclick = () => { if (levelNowDone) showDiploma(L, true, !nextWasOpen); else screenLevel(L); };
 }
@@ -1120,7 +1220,7 @@ function showDiploma(L, fresh, newUnlock){
     </div>
     ${newUnlock && next ? `<p class="center" style="font-weight:800">🔓 Desbloqueaste: ${next.icon} ${next.name}!</p>` : ''}
     <button class="btn big" id="dok" style="width:100%;margin-top:10px">Fixe! 🎉</button>`, (m, cl) => { $('#dok', m).onclick = cl; });
-  Voice.say(`Parabéns, ${p.name}! Ganhaste o diploma ${L.diploma}!` + (newUnlock && next ? ` Desbloqueaste o nível ${next.name}.` : ''));
+  Voice.say(['Parabéns!', p.name, 'Ganhaste o diploma:', L.diploma, ...(newUnlock && next ? ['Desbloqueaste um nível novo:', next.name] : [])]);
 }
 
 /* =========================================================
@@ -1143,8 +1243,8 @@ function screenLibrary(){
       <div class="muted" style="font-weight:800">${CATS[s.cat].icon} ${CATS[s.cat].name.toUpperCase()}</div>
       <h2>${esc(s.name)}</h2><p style="font-size:18px;font-weight:700">${esc(s.desc)}</p>
       <div class="grid g2"><button class="btn sun" id="ls">🔊 Ouvir</button><button class="btn" id="lc">OK</button></div></div>`,
-      (m, cl) => { $('#ls', m).onclick = () => Voice.say(`${s.name}. ${s.desc}`); $('#lc', m).onclick = cl; });
-    Sound.play('pop'); Voice.say(`${s.name}. ${s.desc}`);
+      (m, cl) => { $('#ls', m).onclick = () => Voice.say([s.name, s.desc]); $('#lc', m).onclick = cl; });
+    Sound.play('pop'); Voice.say([s.name, s.desc]);
   });
 }
 
@@ -1164,7 +1264,7 @@ function screenStickers(){
     const s = pick(free); p.coins -= 30; p.stickers.push(s[0]); save();
     Sound.play('coin'); later(() => Sound.play('pop'), 300);
     modal(`<div class="center"><div class="muted" style="font-weight:800">SAIU-TE…</div><div class="reveal">${s[0]}</div><h2>${s[1]}</h2><button class="btn big" id="sc" style="width:100%">Colar na caderneta</button></div>`, (m, cl) => { $('#sc', m).onclick = () => { cl(); screenStickers(); const el = $(`.sticker[data-e="${s[0]}"]`); if (el){ el.classList.add('new'); el.scrollIntoView({block:'center'}); } }; });
-    Voice.say(`Saiu-te o cromo ${s[1]}!`);
+    Voice.say(['Saiu-te o cromo:', s[1]]);
   };
   $$('.sticker').forEach(b => b.onclick = () => { if (b.classList.contains('locked')){ Sound.play('wrong'); return; } Sound.play('pop'); b.classList.remove('new'); void b.offsetWidth; b.classList.add('new'); Voice.say(b.dataset.n); });
 }
@@ -1178,8 +1278,8 @@ function screenGarage(){
   $$('[data-v]').forEach(b => b.onclick = () => {
     const [e, n, c] = VEHICLES.find(v => v[0] === b.dataset.v);
     if (p.vehicles.includes(e)){ p.vehicle = e; save(); Sound.play(e === '🚲' || e === '🛴' ? 'bell' : e === '🚒' || e === '🚑' || e === '🚓' ? 'siren' : 'horn'); screenGarage(); return; }
-    if (p.coins < c){ Sound.play('wrong'); toast(`Precisas de ${c} moedas. Joga mais para ganhar! 🪙`); Voice.say(`Precisas de ${c} moedas.`); return; }
-    p.coins -= c; p.vehicles.push(e); p.vehicle = e; save(); Sound.play('coin'); later(() => Sound.play('engine'), 300); confetti(); Voice.say(`Compraste: ${n}!`); screenGarage();
+    if (p.coins < c){ Sound.play('wrong'); toast(`Precisas de ${c} moedas. Joga mais para ganhar! 🪙`); Voice.say('Ainda não tens moedas suficientes. Joga mais para ganhar!'); return; }
+    p.coins -= c; p.vehicles.push(e); p.vehicle = e; save(); Sound.play('coin'); later(() => Sound.play('engine'), 300); confetti(); Voice.say(['Compraste:', n]); screenGarage();
   });
 }
 
@@ -1248,8 +1348,16 @@ function screenParents(){
       <div class="grid g3" id="ages">${AGES.map(([t,l]) => `<button class="choice ${p.ageLvl===l?'sel':''}" data-g="${l}" style="font-size:15px;font-weight:800">${t}</button>`).join('')}</div>
       <div class="grid g2" style="margin-top:14px"><button class="btn ghost small" id="rst">🔄 Recomeçar progresso</button><button class="btn coral small" id="del">🗑️ Apagar perfil</button></div>
       <p class="muted" style="font-size:13px;font-weight:700">Os perfis ficam guardados neste aparelho e neste navegador.</p></div>
+    <div class="card" style="margin-top:14px"><h3>💾 Cópia de segurança</h3>
+      <p class="muted" style="font-weight:700;margin-top:0">Guarda este código (por exemplo, envia-o para ti por mensagem). Serve para recuperar o progresso de todos os perfis, ou para passá-lo para outro aparelho.</p>
+      <textarea id="bk" rows="4" readonly style="width:100%;font-size:12px;border-radius:14px;border:3px solid #cfe0ea;padding:10px;font-family:monospace">${Store.exportCode(S)}</textarea>
+      <div class="grid g2" style="margin-top:8px"><button class="btn sun small" id="cp">📋 Copiar código</button><button class="btn ghost small" id="rs2">📥 Restaurar</button></div></div>
     <div class="card" style="margin-top:14px;font-size:14px"><h3>Sobre os conteúdos</h3><p class="muted" style="font-weight:600;margin:0">Baseado no Código da Estrada e no Regulamento de Sinalização do Trânsito (RST) em vigor em Portugal, e nas recomendações da ANSR. Os desenhos dos sinais são versões simplificadas para crianças.</p></div>`);
   $('#back').onclick = screenHome;
+  $('#cp').onclick = () => { const t = $('#bk'); t.select(); const done = () => { Sound.play('coin'); toast('📋 Código copiado!'); };
+    try { navigator.clipboard.writeText(t.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch(e){ toast('Seleciona o código e copia-o à mão.'); } }); }
+    catch(e){ try { document.execCommand('copy'); done(); } catch(_){ toast('Seleciona o código e copia-o à mão.'); } } };
+  $('#rs2').onclick = restoreDialog;
   $('#ua').onclick = e => { p.unlockAll = !p.unlockAll; save(); e.target.classList.toggle('on', p.unlockAll); };
   $$('#ages .choice').forEach(b => b.onclick = () => { p.ageLvl = +b.dataset.g; save(); $$('#ages .choice').forEach(x => x.classList.toggle('sel', x === b)); });
   $('#rst').onclick = () => modal(`<h2>Recomeçar o progresso de ${esc(p.name)}?</h2><p>Estrelas, moedas, cromos e diplomas voltam ao início.</p><div class="grid g2"><button class="btn ghost" id="n">Cancelar</button><button class="btn coral" id="y">Recomeçar</button></div>`, (m, cl) => {
@@ -1259,9 +1367,18 @@ function screenParents(){
 }
 
 /* ---------- Arranque ---------- */
-window.__MC = { SFX, Sound, Voice, SIGNS, BANKS, LEVELS, S, signSVG };
-if (S.settings.music) { /* música só começa após o primeiro toque */ }
+window.__MC = { SFX, Sound, Voice, SIGNS, BANKS, LEVELS, S, signSVG, Store, IDB, STICKERS, VEHICLES, REC, speechKey, splitSentences };
 P() ? screenHome() : screenProfiles();
+if (S.profiles.length) Store.persist();
+/* se o localStorage foi limpo mas a cópia na IndexedDB existe, recupera-a */
+IDB.get(Store.key).then(json => {
+  if (!json) { if (S.profiles.length) IDB.put(Store.key, JSON.stringify(S)); return; }
+  try {
+    const d = JSON.parse(json);
+    const count = x => (x.profiles || []).reduce((a,p) => a + Object.keys(p.progress||{}).length + (p.stickers||[]).length, 0) + (x.profiles||[]).length;
+    if (count(d) > count(S)) { Object.assign(S, d); try { localStorage.setItem(Store.key, json); } catch(e){} P() ? screenHome() : screenProfiles(); }
+  } catch(e){}
+});
 </script>
 </body>
 </html>
